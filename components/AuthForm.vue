@@ -22,7 +22,7 @@
             :class="{ 'error-field': passwordError }"
           />
 
-          <!-- Дополнительное поле для регистрации -->
+          <!-- поле для регистрации -->
           <input
             v-if="!isLogin"
             v-model="confirmPassword"
