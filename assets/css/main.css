@@ -1,0 +1,18 @@
+/* Базовые отступы и выравнивание */
+main {
+ margin: 0 auto; 
+ max-width: 1200px; 
+}
+
+/* Стили для заголовков */
+h1, h2, h3 {
+ font-family: 'Roboto', sans-serif;
+ line-height: 1.5;
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+ main {
+ padding: 0 20px; 
+ }
+}

@@ -2,14 +2,15 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-
+css: ["/assets/css/main.css"],
   modules: [
     '@nuxt/eslint',
     '@nuxt/fonts',
     '@nuxt/icon',
     '@nuxt/image',
     '@nuxt/test-utils',
-    '@nuxtjs/tailwindcss'
+    '@nuxtjs/tailwindcss',
+    '@pinia/nuxt',
   ],
 
   runtimeConfig: {
@@ -17,5 +18,11 @@ export default defineNuxtConfig({
       apiBase: process.env.API_URL || 'http://localhost:3000'
     }
   },
-  
+
+  imports: {
+    dirs: ['stores']
+  },
+
+
+
 })
