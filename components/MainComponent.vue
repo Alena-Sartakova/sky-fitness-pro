@@ -14,11 +14,15 @@
   </div>
 
   <div class="content-container">
-    <div v-if="coursesStore.isLoading" class="status-message">Загрузка курсов...</div>
-    <div v-else-if="coursesStore.hasError" class="status-message error">{{ coursesStore.hasError }}</div>
+    <div v-if="coursesStore.isLoading" class="status-message">
+      Загрузка курсов...
+    </div>
+    <div v-else-if="coursesStore.hasError" class="status-message error">
+      {{ coursesStore.hasError }}
+    </div>
     <div v-else class="cards-grid">
-      <CardComponent 
-        v-for="course in coursesStore.getAllCourses" 
+      <CardComponent
+        v-for="course in coursesStore.getAllCourses"
         :key="course._id"
         :course="course"
       />
@@ -29,11 +33,11 @@
 <script setup>
 import CardComponent from "./CardComponent.vue";
 
-const coursesStore = useCoursesStore()
+const coursesStore = useCoursesStore();
 
 onMounted(async () => {
-  await coursesStore.fetchCourses()
-})
+  await coursesStore.fetchCourses();
+});
 </script>
 
 <style lang="scss" scoped>

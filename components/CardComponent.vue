@@ -97,6 +97,7 @@ const daysText = computed(() => {
   flex-shrink: 0;
   border-radius: 16px;
   overflow: hidden;
+  margin: 8px 8px 0;
 }
 
 .card-image img {

@@ -2,9 +2,7 @@
   <div class="layout">
     <header-component />
     <main class="container">
-      
       <div class="content-wrapper">
-        
         <slot />
       </div>
     </main>
