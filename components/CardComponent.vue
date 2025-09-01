@@ -1,7 +1,12 @@
 <template>
   <NuxtLink :to="`/course/${course._id}`" class="card">
     <div class="card-image">
-      <img :src="courseImage" :alt="course.nameRU" />
+      <img 
+        :src="courseImage" 
+        :alt="course.nameRU" 
+        class="course-image"
+        @error="handleImageError"
+      />
       <button class="add-button" @click.prevent="handleAdd">
         <span class="add-icon">{{ isAdded ? "-" : "+" }}</span>
       </button>
@@ -64,10 +69,29 @@ const formattedDifficulty = computed(() => {
   );
 });
 
+const handleImageError = (e) => {
+  e.target.src = defaultImage.value;
+  e.target.classList.add('image-error');
+};
+
+// Обновляем вычисляемое свойство с обработкой ошибок
+const defaultImage = computed(() => 
+  new URL('../assets/img/main/default-course.png', import.meta.url).href
+);
+
 const courseImage = computed(() => {
-  return new URL(`../assets/img/${props.course.nameEN}.png`, import.meta.url)
-    .href;
+  try {
+    const imagePath = new URL(
+      `../assets/img/main/${props.course.nameEN}.png`, 
+      import.meta.url
+    ).href;
+    return imagePath;
+  } catch (error) {
+    console.error('Error loading course image:', error);
+    return defaultImage.value;
+  }
 });
+
 
 const daysText = computed(() => {
   const days = props.course.durationInDays;
@@ -97,7 +121,6 @@ const daysText = computed(() => {
   flex-shrink: 0;
   border-radius: 16px;
   overflow: hidden;
-  margin: 8px 8px 0;
 }
 
 .card-image img {

@@ -27,7 +27,6 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .course-page {
-  padding: 2rem;
   min-height: 80vh;
   position: relative;
 }

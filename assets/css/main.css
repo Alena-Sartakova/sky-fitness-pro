@@ -4,10 +4,42 @@ main {
  max-width: 1200px; 
 }
 
-/* Стили для заголовков */
-h1, h2, h3 {
- font-family: 'Roboto', sans-serif;
- line-height: 1.5;
+@font-face {
+    font-family: 'Roboto';
+    font-weight: 400;
+    font-style: normal;
+    src: url('../fonts/Roboto-Regular.ttf') format('truetype');
+  }
+
+  @font-face {
+    font-family: 'Roboto';
+    font-weight: 600;
+    font-style: normal;
+    src: url('../fonts/Roboto-SemiBold.ttf') format('truetype');
+   }
+
+@font-face {
+    font-family: 'Roboto';
+    font-weight: 700;
+    src: url('../fonts/Roboto-Bold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Roboto';
+    font-weight: 300;
+    src: url('../fonts/Roboto-Light.ttf') format('truetype');
+}
+
+/* Применение шрифта ко всему сайту */
+html {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    line-height: 1.1;
+}
+
+/* Опционально: настройка базовых размеров для заголовков */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Roboto', sans-serif;
 }
 
 /* Адаптивные стили */

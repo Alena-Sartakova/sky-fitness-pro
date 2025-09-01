@@ -13,13 +13,13 @@ export const useCoursesStore = defineStore('courses', {
       this.loading = true
       this.error = null
       try {
-        const { data, error } = await useFetch('https://wedev-api.sky.pro/api/fitness/courses')
-        
-        if (error.value) {
-          throw new Error(error.value.message)
+        const response = await $fetch('https://wedev-api.sky.pro/api/fitness/courses')
+
+        if (!response) {
+          throw new Error('Не удалось получить данные')
         }
 
-        this.courses = data.value
+        this.courses = response
         console.log('Полученные курсы:', this.courses)
       } catch (error) {
         this.error = error.message || 'Ошибка при получении курсов'
@@ -31,14 +31,14 @@ export const useCoursesStore = defineStore('courses', {
 
     async getCourseById(courseId) {
       try {
-        const { data, error } = await useFetch(`https://wedev-api.sky.pro/api/fitness/courses/${courseId}`)
-        
-        if (error.value) {
-          throw new Error(error.value.message)
+        const response = await $fetch(`https://wedev-api.sky.pro/api/fitness/courses/${courseId}`)
+
+        if (!response) {
+          throw new Error('Курс не найден')
         }
 
-        console.log('Получен курс:', data.value)
-        return data.value
+        console.log('Получен курс:', response)
+        return response
       } catch (error) {
         console.error('Ошибка получения курса:', error)
         throw new Error(error.message || 'Ошибка при получении курса')
@@ -49,6 +49,6 @@ export const useCoursesStore = defineStore('courses', {
   getters: {
     getAllCourses: (state) => state.courses,
     isLoading: (state) => state.loading,
-    hasError: (state) => state.error
+    hasError: (state) => state.error !== null
   }
 })

@@ -1,52 +1,76 @@
 <template>
   <div class="course-card">
-    <!-- Заголовок курса -->
-    <h2 class="course-title">{{ course.nameRU }}</h2>
+    <!-- Обертка для изображения -->
+    <div class="course-image-wrapper">
+      <img :src="courseImage" :alt="course.nameRU" class="course-main-image" />
+      <h2 class="visually-hidden">{{ course.nameRU }}</h2>
+    </div>
 
     <!-- Блок "Подойдет для вас, если" -->
     <div class="target-section">
       <h3 class="section-title">Подойдет для вас, если:</h3>
-      <ul class="target-list">
-        <li
-          v-for="(direction, index) in course.directions"
+      <div class="target-list">
+        <div
+          v-for="(fit, index) in course.fitting"
           :key="index"
           class="target-item"
         >
-          {{ direction }}
-        </li>
-      </ul>
+          <span class="number">{{ index + 1 }}</span>
+          <p class="fit-text">{{ fit }}</p>
+        </div>
+      </div>
     </div>
 
     <!-- Блок "Направления" -->
     <div class="directions-section">
       <h3 class="section-title">Направления:</h3>
-      <ul class="directions-list">
-        <li
-          v-for="(fit, index) in course.fitting"
-          :key="index"
-          class="direction-item"
-        >
-          {{ fit }}
-        </li>
-      </ul>
+      <div class="directions-wrapper">
+        <ul class="directions-list">
+          <li
+            v-for="(direction, index) in course.directions"
+            :key="index"
+            class="direction-item"
+          >
+            <img src="../assets/img/icon/Star.svg" />
+            {{ direction }}
+          </li>
+        </ul>
+      </div>
     </div>
 
     <!-- Статичный блок преимуществ -->
     <div class="benefits-section">
-      <h3 class="section-title">Начните путь к новому телу:</h3>
-      <ul class="benefits-list">
-        <li class="benefit-item">Проработка всех групп мышц</li>
-        <li class="benefit-item">Тренировка суставов</li>
-        <li class="benefit-item">Улучшение циркуляции крови</li>
-        <li class="benefit-item">Упражнения заряжают бодростью</li>
-        <li class="benefit-item">Помогают противостоять стрессам</li>
-      </ul>
-    </div>
+      <div class="content-wrapper">
+        <h3 class="section-title">
+          Начните путь<br />
+          к новому телу:
+        </h3>
+        <ul class="benefits-list">
+          <li class="benefit-item">Проработка всех групп мышц</li>
+          <li class="benefit-item">Тренировка суставов</li>
+          <li class="benefit-item">Улучшение циркуляции крови</li>
+          <li class="benefit-item">Упражнения заряжают бодростью</li>
+          <li class="benefit-item">Помогают противостоять стрессам</li>
+        </ul>
 
-    <!-- Кнопка авторизации -->
-    <button class="auth-button" @click="handleAuthRedirect">
-      Войдите, чтобы добавить курс
-    </button>
+        <!-- Кнопка авторизации -->
+        <button class="auth-button" @click="handleAuthRedirect">
+          Войдите, чтобы добавить курс
+        </button>
+      </div>
+
+      <!-- Контейнер для изображений -->
+      <div class="image-overlay">
+        <img
+          src="../assets/img/course/Mask-group.png"
+          class="background-image"
+        />
+        <img
+          src="../assets/img/course/Mask-group-1.png"
+          class="foreground-image"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -64,6 +88,13 @@ const props = defineProps({
 const router = useRouter();
 const route = useRoute();
 
+const courseImage = computed(() => {
+  return new URL(
+    `../assets/img/course/${props.course.nameEN}.png`,
+    import.meta.url
+  ).href;
+});
+
 const handleAuthRedirect = () => {
   // Сохраняем текущий путь для редиректа после авторизации
   const redirectPath = route.fullPath;
@@ -79,23 +110,50 @@ const handleAuthRedirect = () => {
 .course-card {
   background: #ffffff;
   border-radius: 12px;
-  padding: 2rem;
+  padding: 0;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
 }
 
-.course-title {
-  color: #1e40af;
-  font-size: 1.8rem;
-  margin-bottom: 1.5rem;
+.course-image-wrapper {
+  position: relative;
+  overflow: hidden;
+
+  .course-main-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.target-section,
+.directions-section,
+.benefits-section {
+  padding-top: 2rem;
 }
 
 .section-title {
   color: #374151;
-  font-size: 1.2rem;
+  font-size: 2.5rem;
   margin-bottom: 1rem;
-  padding-left: 1.5rem;
   position: relative;
+
+  &::before {
+    display: none;
+  }
 }
 
 .section-title::before {
@@ -110,8 +168,62 @@ const handleAuthRedirect = () => {
   border-radius: 50%;
 }
 
-.target-list,
-.directions-list,
+.target-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  width: 100%;
+}
+
+.target-item {
+  background: #222;
+  color: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  flex: 1 1 calc(33.33% - 1rem);
+  min-width: 150px;
+  width: calc(33.33% - 1rem);
+  height: 100px;
+
+  .fit-text {
+    line-height: 1.4;
+    word-break: break-word;
+  }
+}
+
+.number {
+  font-size: 4rem;
+  margin-right: 1rem;
+  color: #bcec30;
+}
+
+.directions-wrapper {
+  background: #bcec30;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.directions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+  width: 100%;
+}
+
+.direction-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px;
+
+  border-radius: 8px;
+  flex: 1 1 calc(33.33% - 2rem);
+}
+
 .benefits-list {
   list-style: none;
   padding-left: 1.5rem;
@@ -127,24 +239,51 @@ const handleAuthRedirect = () => {
 }
 
 .benefits-section {
+  position: relative;
+  padding: 1.5rem;
   background: #f0f4ff;
   border-radius: 8px;
-  padding: 1.5rem;
   margin: 1.5rem 0;
+  overflow: visible;
+  margin-top: 100px;
 }
 
-.benefit-item {
-  color: #4b5563;
-  font-weight: 500;
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.foreground-image {
+  position: absolute;
+  top: -20%;
+  right: 5%;
+  width: 40%;
+  height: auto;
+  -o-object-fit: contain;
+  object-fit: contain;
+  z-index: 1;
 }
 
 .auth-button {
   width: 100%;
   padding: 1rem;
-  background: #2563eb;
-  color: #ffffff;
+  background: #bcec30;
+  color: #000000;
   border: none;
-  border-radius: 8px;
+  border-radius: 26px;
   font-size: 1rem;
   display: flex;
   align-items: center;
@@ -154,7 +293,7 @@ const handleAuthRedirect = () => {
 }
 
 .auth-button:hover {
-  background: #1d4ed8;
+  background: #a8d52b;
 }
 
 @media (max-width: 768px) {
