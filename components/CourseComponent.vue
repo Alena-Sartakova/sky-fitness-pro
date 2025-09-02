@@ -227,6 +227,7 @@ const handleAuthRedirect = () => {
 .benefits-list {
   list-style: none;
   padding-left: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .target-list li,
@@ -238,6 +239,13 @@ const handleAuthRedirect = () => {
   gap: 0.8rem;
 }
 
+.content-wrapper {
+  width: 437px;
+  margin-left: 2rem;
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+}
+
 .benefits-section {
   position: relative;
   padding: 1.5rem;
@@ -246,6 +254,7 @@ const handleAuthRedirect = () => {
   margin: 1.5rem 0;
   overflow: visible;
   margin-top: 100px;
+  z-index: 2;
 }
 
 .image-overlay {
@@ -258,12 +267,10 @@ const handleAuthRedirect = () => {
 
 .background-image {
   position: absolute;
-  top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
+  height: 110%;
+  z-index: 1;
 }
 
 .foreground-image {
@@ -274,7 +281,7 @@ const handleAuthRedirect = () => {
   height: auto;
   -o-object-fit: contain;
   object-fit: contain;
-  z-index: 1;
+  z-index: 3;
 }
 
 .auth-button {

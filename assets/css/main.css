@@ -13,6 +13,13 @@ main {
 
   @font-face {
     font-family: 'Roboto';
+    font-weight: 500;
+    font-style: normal;
+    src: url('../fonts/Roboto-Medium.ttf') format('truetype');
+   }
+
+  @font-face {
+    font-family: 'Roboto';
     font-weight: 600;
     font-style: normal;
     src: url('../fonts/Roboto-SemiBold.ttf') format('truetype');
