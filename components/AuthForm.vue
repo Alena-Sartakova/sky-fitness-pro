@@ -1,12 +1,16 @@
 <template>
-  <div class="modal-overlay">
+  <div
+    v-show="isVisible"
+    class="modal-overlay"
+    @click.self="handleOverlayClick"
+  >
     <div class="modal-content">
       <div class="logo">
         <img src="../assets/img/logo.svg" alt="Logo" />
       </div>
+
       <form @submit.prevent="handleSubmit">
         <div class="form-input">
-          <!-- Общие поля -->
           <input
             v-model="email"
             type="email"
@@ -16,34 +20,37 @@
           />
           <input
             v-model="password"
-            type="password"
             placeholder="Пароль"
             required
             :class="{ 'error-field': passwordError }"
           />
-
-          <!-- поле для регистрации -->
           <input
             v-if="!isLogin"
             v-model="confirmPassword"
-            type="password"
             placeholder="Повторите пароль"
             required
             :class="{ 'error-field': confirmPasswordError }"
           />
+
+          <div v-if="userStore.error" class="error-message">
+            {{ errorMessage }}
+          </div>
+
+          <button
+            v-if="password.length > 0"
+            type="button"
+            class="password-toggle"
+          />
         </div>
 
         <div class="form-button">
-          <!-- Основная кнопка действия -->
           <button type="submit" class="login-button" :disabled="!isFormValid">
             {{ isLogin ? "Войти" : "Зарегистрироваться" }}
           </button>
-
-          <!-- Кнопка переключения формы -->
           <button
             type="button"
             class="register-button"
-            @click="handleNavigation"
+            @click="handleModeToggle"
           >
             {{ isLogin ? "Зарегистрироваться" : "Войти" }}
           </button>
@@ -54,60 +61,111 @@
 </template>
 
 <script setup>
-import { ref, defineProps } from "vue";
+import { ref, computed } from "vue";
+import { useUserStore } from "@/stores/user";
+import { useRouter } from "vue-router";
 
 const props = defineProps({
   isLogin: {
     type: Boolean,
     required: true,
   },
+  isVisible: {
+    type: Boolean,
+    required: true,
+  },
+  isModal: {
+    type: Boolean,
+    default: false,
+  },
 });
+
+const emit = defineEmits(["close", "toggle-mode"]);
+
+const router = useRouter();
+const userStore = useUserStore();
+
 
 const email = ref("");
 const password = ref("");
 const confirmPassword = ref("");
-const emailError = ref(false);
-const passwordError = ref(false);
-const confirmPasswordError = ref(false);
 
-// Валидация формы
+// Реактивная валидация
+const emailError = computed(() => !/^\S+@\S+\.\S+$/.test(email.value));
+const passwordError = computed(() => password.value.length < 6);
+const confirmPasswordError = computed(
+  () => !props.isLogin && password.value !== confirmPassword.value
+);
+
 const isFormValid = computed(() => {
-  const emailValid = /^\S+@\S+\.\S+$/.test(email.value);
-  const passwordValid = password.value.length >= 6;
-  
   if (props.isLogin) {
-    return emailValid && passwordValid;
+    return !emailError.value && !passwordError.value;
   }
-  
-  return emailValid && passwordValid && (password.value === confirmPassword.value);
+  return (
+    !emailError.value && !passwordError.value && !confirmPasswordError.value
+  );
 });
 
-
 const handleSubmit = async () => {
-  // Валидация полей
-  emailError.value = !/^\S+@\S+\.\S+$/.test(email.value);
-  passwordError.value = password.value.length < 6;
-
-if (!props.isLogin) {
-  confirmPasswordError.value = password.value !== confirmPassword.value;
-}
-
-if (emailError.value || passwordError.value || confirmPasswordError.value) {
-  return;
-}
+  if (!isFormValid.value) return;
 
   try {
-    if (props.isLogin) {
-      // Логика авторизации
-    } else {
-      // Логика регистрации
+    userStore.$reset();
+    const authMethod = props.isLogin ? userStore.login : userStore.register;
+    await authMethod(email.value, password.value);
+
+    if (userStore.token && !userStore.error) {
+      if (props.isModal) {
+        emit("close");
+      } else {
+        await router.push("/");
+      }
+      resetForm();
     }
-  } catch {
-    // Обработка ошибок
+  } catch (error) {
+    console.error("Auth error:", error);
   }
 };
 
+const errorMessages = {
+  "invalid-email": "Введите корректный Email",
+  "email-exists": "Пользователь с таким email уже существует",
+  "password-length": "Пароль должен содержать минимум 6 символов",
+  "password-special-chars": "Добавьте минимум 2 спецсимвола (!@#$%^&*)",
+  "password-uppercase": "Добавьте минимум одну заглавную букву",
+  "user-not-found": "Пользователь не найден",
+  "wrong-password": "Неверный пароль",
+  "unknown-error": "Произошла ошибка. Попробуйте снова",
+};
 
+const errorMessage = computed(() => {
+  return errorMessages[userStore.error] || errorMessages["unknown-error"];
+});
+
+const handleModeToggle = () => {
+  if (props.isModal) {
+    emit("toggle-mode");
+  } else {
+    router.push(props.isLogin ? "/regpage" : "/authpage");
+  }
+};
+
+const handleOverlayClick = (event) => {
+  if (event.target === event.currentTarget && props.isVisible) {
+    emit("close");
+  }
+};
+
+const resetForm = () => {
+  email.value = "";
+  password.value = "";
+  confirmPassword.value = "";
+};
+
+// Очистка ошибок при изменении данных
+watch([email, password, confirmPassword], () => {
+  if (userStore.error) userStore.error = null;
+});
 </script>
 
 <style scoped lang="scss">
@@ -121,6 +179,7 @@ if (emailError.value || passwordError.value || confirmPasswordError.value) {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 9999;
 }
 
 .modal-content {
@@ -237,5 +296,10 @@ input {
 
 .register-button:hover {
   background-color: #e9eced;
+}
+
+.error-message {
+  color: #ff4444;
+  text-align: center;
 }
 </style>

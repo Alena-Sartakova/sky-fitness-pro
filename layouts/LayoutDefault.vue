@@ -1,6 +1,6 @@
 <template>
   <div class="layout">
-    <header-component />
+    <header-component v-if="!isAuthPage" :user="currentUser"/>
     <main class="container">
       <div class="content-wrapper">
         <slot />
@@ -15,6 +15,23 @@
 <script setup>
 // В Nuxt 3 useRoute уже встроен
 const route = useRoute();
+const userStore = useUserStore();
+
+const isAuthPage = computed(() => {
+  return ['/authpage', '/regpage'].includes(route.path)
+})
+
+const currentUser = computed(() => userStore.currentUser);
+
+watch(currentUser, (newValue) => {
+ console.log('Текущий пользователь:', newValue);
+});
+
+onMounted(async () => {
+  if (userStore.token) {
+    await userStore.fetchUserData();
+  }
+});
 </script>
 
 <style scoped>

@@ -41,7 +41,7 @@
     <!-- Статичный блок преимуществ -->
     <div class="benefits-section">
       <div class="content-wrapper">
-        <h3 class="section-title">
+        <h3 class="section-title-benefit">
           Начните путь<br />
           к новому телу:
         </h3>
@@ -239,11 +239,20 @@ const handleAuthRedirect = () => {
   gap: 0.8rem;
 }
 
+.section-title-benefit {
+    font-size: 50px;
+    margin-bottom: 28px;
+}
+
 .content-wrapper {
-  width: 437px;
+  width: 380px;
   margin-left: 2rem;
   margin-top: 2rem;
   margin-bottom: 1.5rem;
+  display: block;
+  padding: 1rem;
+  max-width: 437px;
+
 }
 
 .benefits-section {
@@ -275,7 +284,7 @@ const handleAuthRedirect = () => {
 
 .foreground-image {
   position: absolute;
-  top: -20%;
+  top: -15%;
   right: 5%;
   width: 40%;
   height: auto;

@@ -1,9 +1,8 @@
 <template>
-  <AuthForm :is-login="true"  />
+  <AuthForm :is-visible="true" :is-login="true" />
 </template>
 
 <script setup>
-import AuthForm from "../components/AuthForm.vue";
 
 
 </script>
