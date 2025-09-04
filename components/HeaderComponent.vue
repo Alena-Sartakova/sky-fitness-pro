@@ -1,8 +1,13 @@
 <template>
   <div class="container">
     <header class="header">
-      <div class="left-section">
-        <img src="../assets/img/logo.svg" alt="Логотип" class="logo" />
+      <div class="left-section" @click="goToHome">
+        <img
+          src="../assets/img/logo.svg"
+          alt="Логотип"
+          class="logo"
+          @click.prevent
+        />
         <span class="logo-text">Онлайн-тренировки для дома</span>
       </div>
 
@@ -34,7 +39,7 @@
     <div v-if="showModal" class="modal-overlay" @click="showModal = false">
       <div class="modal-content" @click.stop>
         <AuthForm
-        :is-modal="true"
+          :is-modal="true"
           :is-visible="true"
           :is-login="isLogin"
           @close="showModal = false"
@@ -53,6 +58,7 @@ const userStore = useUserStore();
 const showModal = ref(false);
 const isLogin = ref(true);
 const showDropdown = ref(false);
+const router = useRouter();
 
 // Получаем текущего пользователя
 const currentUser = computed(() => userStore.currentUser);
@@ -73,7 +79,11 @@ const handleLogout = () => {
 };
 
 const goToProfile = () => {
-  // Здесь логика перехода на страницу профиля
+  router.push("/userpage");
+};
+
+const goToHome = () => {
+  router.push("/");
 };
 </script>
 
@@ -164,7 +174,6 @@ const goToProfile = () => {
     }
   }
 
-
   .custom-btn {
     width: 100%;
     max-width: 200px;
@@ -173,15 +182,13 @@ const goToProfile = () => {
     font-size: 14px;
     transition: all 0.3s ease;
     background-color: #bcec30;
-    
+
     &:hover {
-        background-color: #000000;
-        color: #ffffff;
-  transition: background-color 0.3s ease, color 0.3s ease;
-      }  
+      background-color: #000000;
+      color: #ffffff;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
   }
-
-
 
   .custom-btn-exit {
     width: 100%;
@@ -195,9 +202,9 @@ const goToProfile = () => {
     background-color: white;
 
     &:hover {
-        background-color: #f5f5f5;
-        border-color: #666;
-      }
+      background-color: #f5f5f5;
+      border-color: #666;
+    }
   }
 
   .modal-overlay {

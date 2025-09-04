@@ -1,98 +1,134 @@
 <template>
-    <div class="profile-container">
-      <div v-if="isLoading" class="loading">
-        <p>Загрузка данных профиля...</p>
-      </div>
-      
-      <div v-else-if="!userStore.isAuthenticated" class="auth-required">
-        <p>Пожалуйста, войдите в систему</p>
-      </div>
-      
-      <div v-else class="profile-content">
-        <h1>Мой профиль</h1>
-        
-        <div class="profile-info">
-          <div class="avatar">
-            <img v-if="user.avatar" :src="user.avatar"  alt="Аватар" />
-            <img v-else src="../assets/img/profile.png" />
-          </div>
-          
-          <div class="details">
-            <p><strong>Имя:</strong> {{ userDisplayName }}</p>
-            <p><strong>Email:</strong> {{ user.email }}</p>
-          </div>
-        </div>
-        
-        <button class="logout-btn" @click="handleLogout">
-          Выйти из системы
-        </button>
-      </div>
+  <div class="profile-container">
+    <div v-if="isLoading" class="loading">
+      <p>Загрузка данных профиля...</p>
     </div>
-  </template>
-  
-  <script setup>
-  import { useUserStore } from '@/stores/user';
-  import { computed, onMounted } from 'vue';
-  
-  const userStore = useUserStore();
-  const isLoading = computed(() => userStore.isLoading);
-  const user = computed(() => userStore.currentUser);
-  
 
-  onMounted(() => {
+    <div v-else-if="!userStore.isAuthenticated" class="auth-required">
+      <p>Пожалуйста, войдите в систему</p>
+    </div>
+
+    <div v-else class="profile-content">
+      <h1>Мой профиль</h1>
+
+      <div class="profile-info">
+        <div class="avatar">
+          <img src="../assets/img/profile.png" />
+        </div>
+
+        <div class="details">
+          <p><strong>Имя:</strong> {{ userDisplayName || "Не указано" }}</p>
+          <p><strong>Email:</strong> {{ user.email || "Не указан" }}</p>
+        </div>
+      </div>
+
+      <button class="logout-btn" @click="handleLogout">Выйти из системы</button>
+    </div>
+  </div>
+
+  <CardCaseComponent
+  v-if="!isLoading"
+      :courses="userCourses || []"
+      :is-loading="coursesStore.isLoading"
+      :has-error="coursesStore.error"
+  />
+</template>
+
+<script setup>
+import { useUserStore } from "@/stores/user";
+import { useCoursesStore } from "@/stores/courses"; // Добавляем импорт
+import { computed, onMounted } from "vue";
+
+const userStore = useUserStore();
+const coursesStore = useCoursesStore();
+const isLoading = computed(() => userStore.isLoading);
+
+// Получаем данные пользователя
+const user = computed(() => {
+  if (userStore.currentUser && userStore.currentUser.user) {
+    return userStore.currentUser.user;
+  }
+  return {};
+});
+
+// Вычисляем имя из email
+const userDisplayName = computed(() => {
+  if (!user.value?.email) return "";
+  const emailParts = user.value.email.split("@");
+  return emailParts[0].replace(/\./g, " ");
+});
+
+// Получаем отфильтрованные курсы
+const userCourses = computed(() => coursesStore.getUserCourses);
+
+onMounted(async () => {
+    try {
+    // Сначала загружаем данные пользователя
     if (!user.value && userStore.token) {
-      userStore.fetchUserData();
+    await userStore.fetchUserData()
     }
-  });
-  
-  const handleLogout = () => {
-    userStore.logout();
-    // Переход на страницу входа (можно использовать navigateTo)
-  };
-
-
-  </script>
-  
-  <style scoped>
-  .profile-container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-  
-  .profile-info {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 20px;
-  }
-  
-  .avatar {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    overflow: hidden;
-  }
-  
-  .avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  
-  .details {
-    flex: 1;
-  }
-  
-  .logout-btn {
-    background: #ff6600;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    
-    &:hover {
-      background: #e65c00;
+   
+    // Получаем ID выбранных курсов только после загрузки пользователя
+    const courseIds = userStore.currentUser?.user?.selectedCourses || []
+   
+    // Загружаем все доступные курсы
+    await coursesStore.fetchCourses()
+   
+    // Загружаем только выбранные курсы пользователя
+    if (courseIds.length > 0) {
+    await coursesStore.fetchUserCourses(courseIds)
     }
+    } catch (error) {
+    console.error('Ошибка загрузки данных:', error)
+    }
+   })
+
+const handleLogout = () => {
+  userStore.logout();
+  // navigateTo('/login');
+};
+</script>
+
+<style scoped>
+.profile-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.profile-info {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.details {
+  flex: 1;
+}
+
+.logout-btn {
+  background: #ff6600;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+
+  &:hover {
+    background: #e65c00;
   }
-  </style>
+}
+</style>
