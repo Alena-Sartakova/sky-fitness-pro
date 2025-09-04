@@ -24,19 +24,25 @@
 
       <button class="logout-btn" @click="handleLogout">Выйти из системы</button>
     </div>
-  </div>
 
-  <CardCaseComponent
-  v-if="!isLoading"
-      :courses="userCourses || []"
-      :is-loading="coursesStore.isLoading"
-      :has-error="coursesStore.error"
-  />
+    <!-- Добавляем условие отображения курсов только при авторизации -->
+    <div v-if="userStore.isAuthenticated">
+      <h1>Мои курсы</h1>
+      <div class="courses-grid">
+        <CardCaseComponent
+          v-if="!isLoading"
+          :courses="userCourses || []"
+          :is-loading="coursesStore.isLoading"
+          :has-error="coursesStore.error"
+        />
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import { useUserStore } from "@/stores/user";
-import { useCoursesStore } from "@/stores/courses"; // Добавляем импорт
+import { useCoursesStore } from "@/stores/courses";
 import { computed, onMounted } from "vue";
 
 const userStore = useUserStore();
@@ -62,26 +68,26 @@ const userDisplayName = computed(() => {
 const userCourses = computed(() => coursesStore.getUserCourses);
 
 onMounted(async () => {
-    try {
+  try {
     // Сначала загружаем данные пользователя
     if (!user.value && userStore.token) {
-    await userStore.fetchUserData()
+      await userStore.fetchUserData();
     }
-   
+
     // Получаем ID выбранных курсов только после загрузки пользователя
-    const courseIds = userStore.currentUser?.user?.selectedCourses || []
-   
+    const courseIds = userStore.currentUser?.user?.selectedCourses || [];
+
     // Загружаем все доступные курсы
-    await coursesStore.fetchCourses()
-   
+    await coursesStore.fetchCourses();
+
     // Загружаем только выбранные курсы пользователя
     if (courseIds.length > 0) {
-    await coursesStore.fetchUserCourses(courseIds)
+      await coursesStore.fetchUserCourses(courseIds);
     }
-    } catch (error) {
-    console.error('Ошибка загрузки данных:', error)
-    }
-   })
+  } catch (error) {
+    console.error("Ошибка загрузки данных:", error);
+  }
+});
 
 const handleLogout = () => {
   userStore.logout();
@@ -91,9 +97,14 @@ const handleLogout = () => {
 
 <style scoped>
 .profile-container {
-  max-width: 600px;
-  margin: 0 auto;
+  display: block;
+  width: 100%;
+  max-width: 1200px;
   padding: 20px;
+  box-sizing: border-box;
+}
+.profile-content {
+  width: 100%;
 }
 
 .profile-info {
@@ -105,7 +116,7 @@ const handleLogout = () => {
 .avatar {
   width: 100px;
   height: 100px;
-  border-radius: 50%;
+
   overflow: hidden;
 }
 

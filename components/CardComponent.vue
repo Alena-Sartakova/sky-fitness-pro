@@ -41,7 +41,9 @@
           <img src="../assets/img/icon/Difficulty.svg" class="icon" />
           <span class="meta-text">{{ formattedDifficulty }}</span>
         </div>
+
       </div>
+      
     </div>
   </NuxtLink>
 </template>
@@ -141,6 +143,9 @@ const daysText = computed(() => {
 
 <style scoped>
 .card {
+  
+  
+  max-width: 346px;
   display: flex;
   flex-direction: column;
   background: white;

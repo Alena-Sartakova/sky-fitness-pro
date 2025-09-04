@@ -7,7 +7,7 @@
           alt="Логотип"
           class="logo"
           @click.prevent
-        />
+        >
         <span class="logo-text">Онлайн-тренировки для дома</span>
       </div>
 
@@ -36,17 +36,7 @@
     </header>
 
     <!-- Модальное окно -->
-    <div v-if="showModal" class="modal-overlay" @click="showModal = false">
-      <div class="modal-content" @click.stop>
-        <AuthForm
-          :is-modal="true"
-          :is-visible="true"
-          :is-login="isLogin"
-          @close="showModal = false"
-          @toggle-mode="toggleMode"
-        />
-      </div>
-    </div>
+<AuthModal v-if="showModal" :show-modal="showModal" @close="showModal = false"/>
   </div>
 </template>
 
@@ -56,7 +46,7 @@ import { useUserStore } from "@/stores/user";
 
 const userStore = useUserStore();
 const showModal = ref(false);
-const isLogin = ref(true);
+console.log('Состояние модального окна:', showModal.value);
 const showDropdown = ref(false);
 const router = useRouter();
 
@@ -69,9 +59,7 @@ const userDisplayName = computed(() => {
   return emailParts[0].replace(/\./g, " ");
 });
 
-const toggleMode = () => {
-  isLogin.value = !isLogin.value;
-};
+
 
 const handleLogout = () => {
   userStore.logout();
@@ -207,27 +195,6 @@ const goToHome = () => {
     }
   }
 
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-  }
-
-  .modal-content {
-    background-color: #fff;
-    padding: 40px;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 360px;
-    min-height: 425px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  }
+  
 }
 </style>

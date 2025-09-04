@@ -54,9 +54,25 @@
         </ul>
 
         <!-- Кнопка авторизации -->
-        <button class="auth-button" @click="handleAuthRedirect">
+        <button
+          v-if="!isAuthenticated"
+          class="auth-button"
+          @click="handleAuthRedirect"
+        >
           Войдите, чтобы добавить курс
         </button>
+
+        <div v-else class="course-actions">
+          <button
+            class="auth-button"
+            :class="{ added: isCourseAdded }"
+            :disabled="isProcessing"
+            @click="handleCourseToggle"
+          >
+            {{ isCourseAdded ? "Удалить курс" : "Добавить курс" }}
+            <span v-if="isProcessing" class="loading-indicator">⌛</span>
+          </button>
+        </div>
       </div>
 
       <!-- Контейнер для изображений -->
@@ -75,6 +91,9 @@
 </template>
 
 <script setup>
+import { useUserStore } from "@/stores/user";
+import { useCoursesStore } from "@/stores/courses";
+
 const props = defineProps({
   course: {
     type: Object,
@@ -87,12 +106,47 @@ const props = defineProps({
 
 const router = useRouter();
 const route = useRoute();
+const userStore = useUserStore();
+const coursesStore = useCoursesStore();
+const isProcessing = ref(false);
 
 const courseImage = computed(() => {
   return new URL(
     `../assets/img/course/${props.course.nameEN}.png`,
     import.meta.url
   ).href;
+});
+
+const isAuthenticated = computed(() => userStore.isAuthenticated);
+const isCourseAdded = computed(() =>
+  userStore.currentUser?.user?.selectedCourses?.includes(props.course._id)
+);
+
+const handleCourseToggle = async () => {
+  isProcessing.value = true;
+
+  try {
+    if (isCourseAdded.value) {
+      await coursesStore.removeCourse(props.course._id);
+    } else {
+      await coursesStore.addCourse(props.course._id);
+    }
+  } catch (error) {
+    console.error("Ошибка:", error);
+    alert(error.message);
+  } finally {
+    isProcessing.value = false;
+  }
+};
+
+// Проверка данных при монтировании компонента
+onMounted(() => {
+  console.log("Компонент смонтирован");
+  console.log("Текущий пользователь:", userStore.currentUser);
+  console.log("Проверка курса:", {
+    id: props.course._id,
+    name: props.course.nameRU,
+  });
 });
 
 const handleAuthRedirect = () => {
@@ -240,8 +294,8 @@ const handleAuthRedirect = () => {
 }
 
 .section-title-benefit {
-    font-size: 50px;
-    margin-bottom: 28px;
+  font-size: 50px;
+  margin-bottom: 28px;
 }
 
 .content-wrapper {
@@ -252,7 +306,6 @@ const handleAuthRedirect = () => {
   display: block;
   padding: 1rem;
   max-width: 437px;
-
 }
 
 .benefits-section {
@@ -272,6 +325,7 @@ const handleAuthRedirect = () => {
   left: 0;
   width: 100%;
   height: 100%;
+  pointer-events: none;
 }
 
 .background-image {
@@ -306,6 +360,7 @@ const handleAuthRedirect = () => {
   justify-content: center;
   gap: 0.8rem;
   transition: background 0.3s ease;
+  z-index: 9999;
 }
 
 .auth-button:hover {

@@ -40,8 +40,8 @@
 
 <style lang="scss" scoped>
 .cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+display: flex;
+flex-wrap: wrap;
   gap: 40px;
 }
 
