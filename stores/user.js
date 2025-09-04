@@ -141,7 +141,22 @@ export const useUserStore = defineStore('user', {
       };
       
       return messages[message] || 'unknown-error';
+    },
+
+    addCourseLocally(courseId) {
+      if (this.currentUser?.user?.selectedCourses && 
+          !this.currentUser.user.selectedCourses.includes(courseId)) {
+        this.currentUser.user.selectedCourses.push(courseId);
+      }
+    },
+
+    removeCourseLocally(courseId) {
+      if (this.currentUser?.user?.selectedCourses) {
+        this.currentUser.user.selectedCourses = 
+          this.currentUser.user.selectedCourses.filter(id => id !== courseId);
+      }
     }
+  
   },
   getters: {
     isAuthenticated: (state) => !!state.token,

@@ -23,10 +23,10 @@ const isAuthPage = computed(() => {
 
 const currentUser = computed(() => userStore.currentUser);
 
-watch(currentUser, (newValue) => {
+/* watch(currentUser, (newValue) => {
  console.log('Текущий пользователь:', newValue);
 });
-
+ */
 onMounted(async () => {
   await nextTick(); 
   if (localStorage.getItem('fitnessToken')) {

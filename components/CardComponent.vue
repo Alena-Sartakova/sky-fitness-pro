@@ -7,8 +7,12 @@
         class="course-image"
         @error="handleImageError"
       />
-      <button class="add-button" @click.prevent="handleAdd">
-        <span class="add-icon">{{ isAdded ? "-" : "+" }}</span>
+      <button 
+        class="add-button" 
+        :class="{ added: isLocalAdded || isAdded }"
+        @click.prevent="handleAdd"
+      >
+        <span class="add-icon">{{ isLocalAdded || isAdded ? "-" : "+" }}</span> 
       </button>
     </div>
 
@@ -44,7 +48,13 @@
 
 <script setup>
 import { NuxtLink } from "#components";
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
+import { useCoursesStore } from '@/stores/courses'
+import { useUserStore } from '@/stores/user'
+
+const isLocalAdded = ref(false);
+const userStore = useUserStore();
+const coursesStore = useCoursesStore();
 
 const props = defineProps({
   course: {
@@ -53,14 +63,42 @@ const props = defineProps({
   },
 });
 
-const isAdded = ref(false);
+const userCourses = computed(() => {
+  return userStore.currentUser?.user?.selectedCourses || [];
+});
 
-const handleAdd = (e) => {
+const isAdded = computed(() => {
+  return userCourses.value.includes(props.course._id);
+});
+
+const handleAdd = async (e) => {
   e.stopPropagation();
-  isAdded.value = !isAdded.value;
-  // Заглушка для будущей логики
-  console.log("Course status:", isAdded.value ? "Added" : "Removed");
+  try {
+    if (isLocalAdded.value || isAdded.value) {
+      // При удалении сбрасываем локальное состояние
+      isLocalAdded.value = false;
+      await coursesStore.removeCourse(props.course._id);
+    } else {
+      // При добавлении временно меняем состояние
+      isLocalAdded.value = true;
+      await coursesStore.addCourse(props.course._id);
+    }
+    
+    // Проверяем успешность операции
+    const isCourseAdded = coursesStore.getUserCourses.includes(props.course._id);
+    if (isCourseAdded !== (isLocalAdded.value || isAdded.value)) {
+      isLocalAdded.value = isCourseAdded;
+    }
+  } catch (error) {
+    // Если произошла ошибка, возвращаем предыдущее состояние
+    isLocalAdded.value = !isLocalAdded.value;
+    console.error('Ошибка при изменении статуса курса:', error);
+  }
 };
+
+watch(() => coursesStore.getUserCourses, () => {
+  isLocalAdded.value = coursesStore.getUserCourses.includes(props.course._id);
+});
 
 const formattedDifficulty = computed(() => {
   return (
@@ -74,7 +112,6 @@ const handleImageError = (e) => {
   e.target.classList.add('image-error');
 };
 
-// Обновляем вычисляемое свойство с обработкой ошибок
 const defaultImage = computed(() => 
   new URL('../assets/img/main/default-course.png', import.meta.url).href
 );
@@ -91,7 +128,6 @@ const courseImage = computed(() => {
     return defaultImage.value;
   }
 });
-
 
 const daysText = computed(() => {
   const days = props.course.durationInDays;

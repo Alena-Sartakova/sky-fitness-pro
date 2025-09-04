@@ -36,7 +36,7 @@ const initializeStore = async () => {
       await coursesStore.fetchCourses()
     }
     
-    console.log('Хранилище инициализировано:', coursesStore.courses)
+    /* console.log('Хранилище инициализировано:', coursesStore.courses) */
   } catch (error) {
     console.error('Ошибка инициализации:', error)
     initializationError.value = error.message || 'Ошибка загрузки начальных данных'
