@@ -7,9 +7,18 @@ const getInitialToken = () => {
     return null;
   };
 
+  const getInitialUserData = () => {
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      const data = localStorage.getItem('fitnessUser');
+      return data ? JSON.parse(data) : null;
+    }
+    return null;
+  };
+
 export const useUserStore = defineStore('user', {
   state: () => ({
-    userData: null,
+    
+    userData: getInitialUserData(),
     token: getInitialToken(),
     isLoading: false,
     error: null
@@ -80,6 +89,7 @@ export const useUserStore = defineStore('user', {
     },
 
     async fetchUserData() {
+      
       if (!this.token) return;
 
       try {
@@ -96,11 +106,11 @@ export const useUserStore = defineStore('user', {
         }
 
         this.userData = data;
-        console.log('Данные пользователя получены:', data);
+        
 
       } catch (error) {
         console.error('Ошибка:', error.message);
-        this.logout();
+        
       }
     },
 

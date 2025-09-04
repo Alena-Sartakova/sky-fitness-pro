@@ -37,7 +37,7 @@ export const useCoursesStore = defineStore('courses', {
           throw new Error('Курс не найден')
         }
 
-        console.log('Получен курс:', response)
+        
         return response
       } catch (error) {
         console.error('Ошибка получения курса:', error)

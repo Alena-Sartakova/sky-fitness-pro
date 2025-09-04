@@ -28,7 +28,10 @@ watch(currentUser, (newValue) => {
 });
 
 onMounted(async () => {
-  if (userStore.token) {
+  await nextTick(); 
+  if (localStorage.getItem('fitnessToken')) {
+    
+    userStore.token = localStorage.getItem('fitnessToken');
     await userStore.fetchUserData();
   }
 });
