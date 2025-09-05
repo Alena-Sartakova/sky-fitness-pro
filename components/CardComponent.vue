@@ -1,18 +1,18 @@
 <template>
   <NuxtLink :to="`/course/${course._id}`" class="card">
     <div class="card-image">
-      <img 
-        :src="courseImage" 
-        :alt="course.nameRU" 
+      <img
+        :src="courseImage"
+        :alt="course.nameRU"
         class="course-image"
         @error="handleImageError"
       />
-      <button 
-        class="add-button" 
+      <button
+        class="add-button"
         :class="{ added: isLocalAdded || isAdded }"
         @click.prevent="handleAdd"
       >
-        <span class="add-icon">{{ isLocalAdded || isAdded ? "-" : "+" }}</span> 
+        <span class="add-icon">{{ isLocalAdded || isAdded ? "-" : "+" }}</span>
       </button>
     </div>
 
@@ -41,28 +41,53 @@
           <img src="../assets/img/icon/Difficulty.svg" class="icon" />
           <span class="meta-text">{{ formattedDifficulty }}</span>
         </div>
-
+        <!-- Место для прогресс бара -->
       </div>
-      
+      <button
+        v-if="showTrainingButton"
+        class="train-button"
+        @click="handleStartTraining"
+      >
+        {{ trainingButtonText }}
+      </button>
     </div>
   </NuxtLink>
+  <WorkoutModal
+    v-if="showWorkoutModal"
+    :course-id="course._id"
+    :sorted-workouts="sortedWorkouts"
+    @close="closeWorkoutModal"
+  />
 </template>
 
 <script setup>
 import { NuxtLink } from "#components";
 import { computed, ref, watch } from "vue";
-import { useCoursesStore } from '@/stores/courses'
-import { useUserStore } from '@/stores/user'
+import { useCoursesStore } from "@/stores/courses";
+import { useUserStore } from "@/stores/user";
 
 const isLocalAdded = ref(false);
 const userStore = useUserStore();
 const coursesStore = useCoursesStore();
+const showWorkoutModal = ref(false);
+const sortedWorkouts = ref([]);
 
 const props = defineProps({
   course: {
     type: Object,
     required: true,
   },
+isProfilePage: {
+  type: Boolean,
+  default: false,
+  // Добавляем преобразование типа
+  customValidator: (value) => {
+    if (typeof value === 'string') {
+      return value.toLowerCase() === 'true';
+    }
+    return typeof value === 'boolean';
+  }
+}
 });
 
 const userCourses = computed(() => {
@@ -85,22 +110,27 @@ const handleAdd = async (e) => {
       isLocalAdded.value = true;
       await coursesStore.addCourse(props.course._id);
     }
-    
+
     // Проверяем успешность операции
-    const isCourseAdded = coursesStore.getUserCourses.includes(props.course._id);
+    const isCourseAdded = coursesStore.getUserCourses.includes(
+      props.course._id
+    );
     if (isCourseAdded !== (isLocalAdded.value || isAdded.value)) {
       isLocalAdded.value = isCourseAdded;
     }
   } catch (error) {
     // Если произошла ошибка, возвращаем предыдущее состояние
     isLocalAdded.value = !isLocalAdded.value;
-    console.error('Ошибка при изменении статуса курса:', error);
+    console.error("Ошибка при изменении статуса курса:", error);
   }
 };
 
-watch(() => coursesStore.getUserCourses, () => {
-  isLocalAdded.value = coursesStore.getUserCourses.includes(props.course._id);
-});
+watch(
+  () => coursesStore.getUserCourses,
+  () => {
+    isLocalAdded.value = coursesStore.getUserCourses.includes(props.course._id);
+  }
+);
 
 const formattedDifficulty = computed(() => {
   return (
@@ -111,22 +141,22 @@ const formattedDifficulty = computed(() => {
 
 const handleImageError = (e) => {
   e.target.src = defaultImage.value;
-  e.target.classList.add('image-error');
+  e.target.classList.add("image-error");
 };
 
-const defaultImage = computed(() => 
-  new URL('../assets/img/main/default-course.png', import.meta.url).href
+const defaultImage = computed(
+  () => new URL("../assets/img/main/default-course.png", import.meta.url).href
 );
 
 const courseImage = computed(() => {
   try {
     const imagePath = new URL(
-      `../assets/img/main/${props.course.nameEN}.png`, 
+      `../assets/img/main/${props.course.nameEN}.png`,
       import.meta.url
     ).href;
     return imagePath;
   } catch (error) {
-    console.error('Error loading course image:', error);
+    console.error("Error loading course image:", error);
     return defaultImage.value;
   }
 });
@@ -139,12 +169,65 @@ const daysText = computed(() => {
   if (lastDigit >= 2 && lastDigit <= 4) return "дня";
   return "дней";
 });
+
+const showTrainingButton = computed(() => {
+  return props.isProfilePage;
+});
+
+// Вычисляемое свойство для текста кнопки
+const trainingButtonText = computed(() => {
+  if (!props.course.progress) {
+    return "Начать тренировку";
+  } else if (props.course.progress < 100) {
+    return "Продолжить тренировку";
+  } else {
+    return "Начать заново";
+  }
+});
+
+
+const extractWorkoutNumber = (name) => {
+  const match = name.match(/(урок|день|lesson|day)\s*(\d+)/i);
+  return match ? parseInt(match[2], 10) : null;
+};
+
+// Функция сортировки тренировок
+const sortWorkouts = (workouts) => {
+  return [...workouts].sort((a, b) => {
+    const numA = extractWorkoutNumber(a.name);
+    const numB = extractWorkoutNumber(b.name);
+
+    if (numA !== null && numB !== null) return numA - numB;
+    if (numA !== null) return -1;
+    if (numB !== null) return 1;
+    return 0;
+  });
+};
+
+// Обработчик клика по кнопке
+const handleStartTraining = async (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  try {
+    // Получаем и сортируем тренировки
+    const rawWorkouts = await coursesStore.fetchCourseWorkouts(props.course._id);
+    sortedWorkouts.value = sortWorkouts(rawWorkouts);
+    showWorkoutModal.value = true;
+    
+  } catch (error) {
+    console.error("Ошибка при получении тренировок:", error);
+    // Можно добавить уведомление об ошибке
+  }
+};
+
+const closeWorkoutModal = () => {
+  showWorkoutModal.value = false;
+};
 </script>
 
 <style scoped>
 .card {
-  
-  
   max-width: 346px;
   display: flex;
   flex-direction: column;
@@ -191,7 +274,6 @@ const daysText = computed(() => {
   display: flex;
   flex-direction: column;
   margin: 0 8px 8px;
-  height: calc(501px - 320px - 16px);
 }
 
 .card-title {
@@ -253,6 +335,21 @@ const daysText = computed(() => {
   .card-title {
     font-size: 18px;
     -webkit-line-clamp: 3;
+  }
+}
+
+.train-button {
+  margin-top: 16px;
+  padding: 10px 16px;
+  background: #ff6600;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+
+  &:hover {
+    background: #e65c00;
   }
 }
 </style>

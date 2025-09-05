@@ -9,14 +9,12 @@ export const useCoursesStore = defineStore('courses', {
     userCourses: [], // Курсы, выбранные пользователем
     loading: false,
     error: null,
-    _cache: () => new Map()
+    _cache: new Map()
   }),
 
   actions: {
     _addToCache(course) {
-      // Проверка на случай, если кэш не инициализирован
-      if (!this._cache) this._cache = new Map()
-      
+      // Теперь проверка не нужна, так как _cache уже инициализирован
       this._cache.set(course._id, course)
       if (!this.courses.some(c => c._id === course._id)) {
         this.courses.push(course)
@@ -170,7 +168,38 @@ export const useCoursesStore = defineStore('courses', {
         console.error('Fetch missing courses error:', error);
         throw error;
       }
+    },
+
+    async fetchCourseWorkouts(courseId) {
+      const userStore = useUserStore();
+      
+      try {
+        userStore.removeCourseLocally(courseId);
+        const response = await $fetch(
+          `https://wedev-api.sky.pro/api/fitness/courses/${courseId}/workouts`, {
+            headers: { Authorization: `Bearer ${userStore.token}` }
+          }
+        );
+        
+        // Валидация ответа
+        if (!Array.isArray(response)) {
+          throw new Error('Invalid workouts response format');
+        }
+
+        // Обновление кэша курса
+        const course = this._cache.get(courseId);
+        if (course) {
+          course.workouts = response;
+          this._addToCache(course);
+        }
+
+        return response;
+      } catch (error) {
+        console.error('Error fetching workouts:', error);
+        throw error;
+      }
     }
+  
   },
 
   getters: {

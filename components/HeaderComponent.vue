@@ -7,7 +7,7 @@
           alt="Логотип"
           class="logo"
           @click.prevent
-        >
+        />
         <span class="logo-text">Онлайн-тренировки для дома</span>
       </div>
 
@@ -36,7 +36,11 @@
     </header>
 
     <!-- Модальное окно -->
-<AuthModal v-if="showModal" :show-modal="showModal" @close="showModal = false"/>
+    <AuthModal
+      v-if="showModal"
+      :show-modal="showModal"
+      @close="showModal = false"
+    />
   </div>
 </template>
 
@@ -46,7 +50,7 @@ import { useUserStore } from "@/stores/user";
 
 const userStore = useUserStore();
 const showModal = ref(false);
-console.log('Состояние модального окна:', showModal.value);
+
 const showDropdown = ref(false);
 const router = useRouter();
 
@@ -59,14 +63,13 @@ const userDisplayName = computed(() => {
   return emailParts[0].replace(/\./g, " ");
 });
 
-
-
 const handleLogout = () => {
   userStore.logout();
   showDropdown.value = false;
 };
 
 const goToProfile = () => {
+  showDropdown.value = false;
   router.push("/userpage");
 };
 
@@ -194,7 +197,5 @@ const goToHome = () => {
       border-color: #666;
     }
   }
-
-  
 }
 </style>

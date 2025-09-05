@@ -34,6 +34,7 @@
           :courses="userCourses || []"
           :is-loading="coursesStore.isLoading"
           :has-error="coursesStore.error"
+          :is-profile-page="true"
         />
       </div>
     </div>
@@ -67,26 +68,33 @@ const userDisplayName = computed(() => {
 // Получаем отфильтрованные курсы
 const userCourses = computed(() => coursesStore.getUserCourses);
 
-onMounted(async () => {
-  try {
-    // Сначала загружаем данные пользователя
-    if (!user.value && userStore.token) {
-      await userStore.fetchUserData();
-    }
+const waitForUser = async () => {
+  return new Promise((resolve) => {
+    const check = () => {
+      if (userStore.currentUser && userStore.currentUser.user) {
+        resolve();
+      } else {
+        setTimeout(check, 100);
+      }
+    };
+    check();
+  });
+};
 
-    // Получаем ID выбранных курсов только после загрузки пользователя
+onMounted(async () => {
+  await waitForUser();
+  try {
     const courseIds = userStore.currentUser?.user?.selectedCourses || [];
 
-    // Загружаем все доступные курсы
     await coursesStore.fetchCourses();
 
-    // Загружаем только выбранные курсы пользователя
     if (courseIds.length > 0) {
+
       await coursesStore.fetchUserCourses(courseIds);
     }
   } catch (error) {
     console.error("Ошибка загрузки данных:", error);
-  }
+  } 
 });
 
 const handleLogout = () => {

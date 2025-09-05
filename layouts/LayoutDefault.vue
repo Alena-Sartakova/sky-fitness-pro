@@ -25,8 +25,8 @@ const currentUser = computed(() => userStore.currentUser);
 
 /* watch(currentUser, (newValue) => {
  console.log('Текущий пользователь:', newValue);
-});
- */
+}); */
+
 onMounted(async () => {
   await nextTick(); 
   if (localStorage.getItem('fitnessToken')) {

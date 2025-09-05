@@ -17,6 +17,7 @@
       :courses="coursesStore.getAllCourses"
       :is-loading="coursesStore.isLoading"
       :has-error="coursesStore.hasError"
+
     />
 </template>
 

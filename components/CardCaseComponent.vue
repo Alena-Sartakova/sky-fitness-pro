@@ -14,6 +14,7 @@
           v-for="course in courses"
           :key="course._id"
           :course="course"
+          :is-profile-page="isProfilePage" 
         />
       </div>
     </div>
@@ -34,7 +35,11 @@
     hasError: {
         type: [String, Boolean],
       default: ''
-    }
+    },
+    isProfilePage: {
+    type: Boolean,
+    default: false
+  }
   });
   </script>
 
