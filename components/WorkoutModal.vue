@@ -6,23 +6,36 @@
 
       <div class="workout-list">
         <div
-          v-for="workout in workouts"
+        v-for="(workout, index) in workouts"
           :key="workout._id"
           class="workout-item"
-          @click="selectWorkout(workout)"
+          :class="{ 'disabled-item': !isWorkoutAvailable(index) }"
+          @click="selectWorkout(workout, index)"
         >
           <div class="workout-header">
-            <h3>{{ getWorkoutName(workout.name) }}</h3>
-            <p class="workout-description">
-              {{ getWorkoutDescription(workout.name) }}
-            </p>
+            <div class="progress-indicator">
+              <span
+                :class="{
+                  'check-icon': isWorkoutCompleted(workout._id),
+                  'circle-icon': !isWorkoutCompleted(workout._id),
+                }"
+              >
+                {{ isWorkoutCompleted(workout._id) ? "✓" : "•" }}
+              </span>
+            </div>
+            <div>
+              <h3>{{ getWorkoutName(workout.name) }}</h3>
+              <p class="workout-description">
+                {{ getWorkoutDescription(workout.name) }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       <button
         class="start-btn"
-        :disabled="!selectedWorkout"
+        
         @click="startTraining"
       >
         Начать тренировку
@@ -34,6 +47,9 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useCoursesStore } from "@/stores/courses";
+import { useWorkoutsStore } from "@/stores/workouts";
+
+const workoutsStore = useWorkoutsStore();
 
 const props = defineProps({
   courseId: {
@@ -42,8 +58,8 @@ const props = defineProps({
   },
   sortedWorkouts: {
     type: Array,
-    default: null
-  }
+    default: null,
+  },
 });
 
 const emit = defineEmits(["close"]);
@@ -53,6 +69,26 @@ const isOpen = ref(true);
 const selectedWorkout = ref(null);
 const workouts = ref([]);
 const course = ref(null);
+
+// Добавляем вычисляемое свойство для проверки завершения тренировки
+const isWorkoutCompleted = computed(() => {
+  return (workoutId) => {
+    if (!workoutId) return false;
+    return workoutsStore.getWorkoutCompletedStatus(workoutId);
+  };
+});
+
+const isWorkoutAvailable = computed(() => {
+  return (workoutIndex) => {
+  if (workoutIndex === 0) return true;
+  
+  const previousWorkout = workouts.value[workoutIndex - 1];
+  if (!previousWorkout) return false;
+  
+  return workoutsStore.getWorkoutCompletedStatus(previousWorkout._id);
+  };
+ });
+ 
 
 // Функция для извлечения номера из названия тренировки
 const extractWorkoutNumber = (name) => {
@@ -77,30 +113,38 @@ onMounted(async () => {
   try {
     // Получаем информацию о курсе
     course.value = await coursesStore.getCourseById(props.courseId);
-    
-    // Выводим информацию о курсе в консоль
-    console.log('📋 Открыт курс:', {
-      id: course.value._id,
-      name: course.value.name,
-      duration: course.value.durationInDays,
-      difficulty: course.value.difficulty
-    });
-    
+
+    // Получаем список тренировок
     if (props.sortedWorkouts) {
-      // Используем предварительно отсортированные данные если они есть
       workouts.value = props.sortedWorkouts;
     } else {
-      // Сортируем самостоятельно если данных нет
       const rawWorkouts = await coursesStore.fetchCourseWorkouts(props.courseId);
       workouts.value = sortWorkouts(rawWorkouts);
     }
-    
+
+    // Получаем прогресс курса (с обработкой отсутствия данных)
+    try {
+      await workoutsStore.fetchCourseProgress(props.courseId);
+    } catch (progressError) {
+      if (progressError.response && progressError.response.status === 404) {
+        console.log('Прогресс курса не найден, продолжаем работу');
+      } else {
+        throw progressError;
+      }
+    }
+
+    // Выводим информацию о курсе в консоль
+    console.log("📋 Открыт курс:", {
+      id: course.value._id,
+      name: course.value.name,
+      duration: course.value.durationInDays,
+      difficulty: course.value.difficulty,
+    });
+
   } catch (error) {
     console.error("Ошибка загрузки тренировок:", error);
   }
 });
-
-
 const getWorkoutName = (fullName) => {
   return fullName.split("/")[0].trim();
 };
@@ -121,13 +165,13 @@ const startTraining = () => {
   }
 
   emit("close");
-  
+
   router.push({
     path: `/course/${props.courseId}/workout/${selectedWorkout.value._id}`,
     query: {
       courseName: course.value.name, // Передаем название курса
-      courseDifficulty: course.value.difficulty
-    }
+      courseDifficulty: course.value.difficulty,
+    },
   });
 };
 const closeModal = () => {
@@ -171,6 +215,29 @@ const closeModal = () => {
   color: #333;
 }
 
+.progress-indicator {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 10px;
+  font-size: 18px;
+}
+
+.check-icon {
+  color: #42b983;
+  font-weight: bold;
+}
+
+.circle-icon {
+  color: #ccc;
+  font-size: 14px;
+}
+
+.workout-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .workout-list {
   margin-top: 20px;
 }
@@ -180,32 +247,47 @@ const closeModal = () => {
   border-bottom: 1px solid #ddd;
   cursor: pointer;
   transition: background-color 0.3s;
-
-  &:hover {
+  
+  &.disabled-item {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+    
+    .progress-indicator {
+      .circle-icon {
+        color: #aaa;
+      }
+    }
+    
+    &:hover {
+      background-color: transparent;
+    }
+  }
+  
+  &:hover:not(.disabled-item) {
     background-color: #f0f0f0;
   }
-
+  
   &:last-child {
     border-bottom: none;
   }
 }
 
 .start-btn {
-    width: 100%;
-    max-width: 200px;
-    padding: 12px;
-    border-radius: 16px;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    background-color: #bcec30;
+  width: 100%;
+  max-width: 200px;
+  padding: 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background-color: #bcec30;
 
   &:hover:not(:disabled) {
-      background-color: #000000;
-      color: #ffffff;
-      transition: background-color 0.3s ease, color 0.3s ease;
+    background-color: #000000;
+    color: #ffffff;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
-
 
 .exercise-list {
   margin-top: 10px;

@@ -7,6 +7,7 @@ export const useWorkoutsStore = defineStore('workouts', {
     currentWorkout: null,
     courseProgress: {},
     workoutProgress: {},
+    workoutsCompleted: {},
     isLoading: false,
     error: null
   }),
@@ -39,21 +40,56 @@ export const useWorkoutsStore = defineStore('workouts', {
       },
   
 
-    async fetchCourseProgress(courseId) {
-      try {
-        const userStore = useUserStore()
+      async fetchCourseProgress(courseId) {
+        try {
+        const userStore = useUserStore();
         
-        this.courseProgress[courseId] = await $fetch(`https://wedev-api.sky.pro/api/fitness/users/me/progress`, {
-          params: { courseId },
-          headers: {
-            Authorization: `Bearer ${userStore.token}`
-          }
-        })
-      } catch (error) {
-        this.error = this.handleError(error)
-        throw error
-      }
-    },
+        try {
+        const response = await $fetch(`https://wedev-api.sky.pro/api/fitness/users/me/progress`, {
+        params: { courseId },
+        headers: {
+        Authorization: `Bearer ${userStore.token}`
+        }
+        });
+        
+        // Проверяем, что response содержит нужные данные
+        if (response && response.workoutsProgress) {
+        this.courseProgress = {
+        [courseId]: response
+        };
+        
+        // Обновляем статусы завершённых тренировок только если есть данные
+        response.workoutsProgress.forEach(workoutProgress => {
+        this.workoutsCompleted[workoutProgress.workoutId] = workoutProgress.workoutCompleted;
+        });
+        } else {
+        // Если прогресса нет, инициализируем пустые данные
+        this.courseProgress = {
+        [courseId]: {
+        workoutsProgress: []
+        }
+        };
+        }
+        
+        } catch (apiError) {
+        // Если API вернул ошибку 404 (прогресс не найден)
+        if (apiError.response && apiError.response.status === 404) {
+        console.log('Прогресс для курса не найден, инициализируем пустые данные');
+        this.courseProgress = {
+        [courseId]: {
+        workoutsProgress: []
+        }
+        };
+        } else {
+        throw apiError;
+        }
+        }
+        
+        } catch (error) {
+        this.error = this.handleError(error);
+        throw error;
+        }
+       },
 
     async fetchWorkoutProgress(courseId, workoutId) {
       try {
@@ -146,6 +182,10 @@ export const useWorkoutsStore = defineStore('workouts', {
 
   getters: {
     exercises: (state) => state.currentWorkout?.exercises || [],
-    getCourseProgress: (state) => (courseId) => state.courseProgress[courseId] || {}
+    getCourseProgress: (state) => (courseId) => state.courseProgress[courseId] || {},
+    getWorkoutCompletedStatus: (state) => (workoutId) => {
+      // Добавляем проверку существования workoutId
+      return state.workoutsCompleted[workoutId] ?? false;
+    },
   }
 })
