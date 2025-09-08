@@ -1,5 +1,3 @@
-
-// stores/courses.js
 import { defineStore } from 'pinia'
 import { useUserStore } from '@/stores/user'
 
@@ -174,7 +172,6 @@ export const useCoursesStore = defineStore('courses', {
       const userStore = useUserStore();
       
       try {
-        userStore.removeCourseLocally(courseId);
         const response = await $fetch(
           `https://wedev-api.sky.pro/api/fitness/courses/${courseId}/workouts`, {
             headers: { Authorization: `Bearer ${userStore.token}` }

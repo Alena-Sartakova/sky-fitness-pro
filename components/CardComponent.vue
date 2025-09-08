@@ -208,7 +208,12 @@ const sortWorkouts = (workouts) => {
 const handleStartTraining = async (e) => {
   e.preventDefault();
   e.stopPropagation();
-  
+  console.log('Выбран курс:', {
+      id: props.course._id,
+      name: props.course.name,
+      difficulty: props.course.difficulty,
+      duration: props.course.durationInDays
+    });
   try {
     // Получаем и сортируем тренировки
     const rawWorkouts = await coursesStore.fetchCourseWorkouts(props.course._id);

@@ -40,7 +40,6 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  // Добавляем опциональный пропс для предварительно отсортированных данных
   sortedWorkouts: {
     type: Array,
     default: null
@@ -48,11 +47,12 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["close"]);
-
+const router = useRouter();
 const coursesStore = useCoursesStore();
 const isOpen = ref(true);
 const selectedWorkout = ref(null);
 const workouts = ref([]);
+const course = ref(null);
 
 // Функция для извлечения номера из названия тренировки
 const extractWorkoutNumber = (name) => {
@@ -75,6 +75,17 @@ const sortWorkouts = (items) => {
 
 onMounted(async () => {
   try {
+    // Получаем информацию о курсе
+    course.value = await coursesStore.getCourseById(props.courseId);
+    
+    // Выводим информацию о курсе в консоль
+    console.log('📋 Открыт курс:', {
+      id: course.value._id,
+      name: course.value.name,
+      duration: course.value.durationInDays,
+      difficulty: course.value.difficulty
+    });
+    
     if (props.sortedWorkouts) {
       // Используем предварительно отсортированные данные если они есть
       workouts.value = props.sortedWorkouts;
@@ -89,7 +100,7 @@ onMounted(async () => {
   }
 });
 
-// Остальные методы без изменений
+
 const getWorkoutName = (fullName) => {
   return fullName.split("/")[0].trim();
 };
@@ -104,19 +115,26 @@ const selectWorkout = (workout) => {
 };
 
 const startTraining = () => {
-  if (selectedWorkout.value) {
-    emit("close");
-    // Здесь можно добавить переход к тренировке
-    console.log("Starting workout:", selectedWorkout.value);
+  if (!selectedWorkout.value?._id) {
+    console.error("Workout ID is missing!");
+    return;
   }
-};
 
+  emit("close");
+  
+  router.push({
+    path: `/course/${props.courseId}/workout/${selectedWorkout.value._id}`,
+    query: {
+      courseName: course.value.name, // Передаем название курса
+      courseDifficulty: course.value.difficulty
+    }
+  });
+};
 const closeModal = () => {
   isOpen.value = false;
   emit("close");
 };
 </script>
-
 
 <style lang="scss" scoped>
 .modal {
@@ -133,12 +151,13 @@ const closeModal = () => {
 }
 
 .modal-content {
-  background: white;
+  background: #fff;
   padding: 20px;
-  border-radius: 10px;
-  width: 80%;
-  max-width: 800px;
+  border-radius: 8px;
+  max-width: 400px;
+  width: 100%;
   position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .close-btn {
@@ -147,8 +166,9 @@ const closeModal = () => {
   right: 10px;
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: 24px;
   cursor: pointer;
+  color: #333;
 }
 
 .workout-list {
@@ -157,48 +177,45 @@ const closeModal = () => {
 
 .workout-item {
   padding: 15px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #ddd;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: background-color 0.3s;
 
   &:hover {
-    background: #f8f8f8;
+    background-color: #f0f0f0;
+  }
+
+  &:last-child {
+    border-bottom: none;
   }
 }
 
-.workout-header {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+.start-btn {
+    width: 100%;
+    max-width: 200px;
+    padding: 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background-color: #bcec30;
+
+  &:hover:not(:disabled) {
+      background-color: #000000;
+      color: #ffffff;
+      transition: background-color 0.3s ease, color 0.3s ease;
+  }
 }
 
-.workout-description {
-  color: #666;
-  font-size: 14px;
-}
 
 .exercise-list {
   margin-top: 10px;
   padding-left: 20px;
+  list-style-type: none;
 }
 
 .exercise {
   margin-bottom: 5px;
   font-size: 14px;
   color: #666;
-}
-
-.start-btn {
-  margin-top: 20px;
-  padding: 15px 20px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-
-  &:hover {
-    background: #0056b3;
-  }
 }
 </style>

@@ -56,7 +56,7 @@ main {
 .content-wrapper {
   max-width: 1160px;
   margin: 0 auto;
-  padding: 20px;
+
 }
 
 @media (max-width: 1160px) {
