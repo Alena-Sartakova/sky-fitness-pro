@@ -89,7 +89,8 @@ export const useWorkoutsStore = defineStore('workouts', {
 
         this.workoutProgress[workoutId] = {
           ...this.workoutProgress[workoutId],
-          ...updatedProgress
+          ...updatedProgress,
+          progressData: updatedProgress.progressData
         }
         
         return updatedProgress

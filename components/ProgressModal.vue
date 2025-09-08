@@ -11,12 +11,17 @@
         >
           <label class="exercise-label">{{ exercise.name }}</label>
           <input
-            v-model.number="progressValues[exercise._id]"
-            type="number"
+            v-model="progressValues[exercise._id]"
+            type="text"
             min="0"
             class="exercise-input"
             placeholder="0"
+            @input="validateInput"
+            @keypress="onlyNumbers($event)"
           />
+          <div v-if="errors[exercise._id]" class="error-message">
+            {{ errors[exercise._id] }}
+          </div>
         </div>
       </div>
 
@@ -24,7 +29,7 @@
         <button
           class="save-button"
           :class="{ loading: isLoading }"
-          :disabled="isLoading"
+          :disabled="isLoading || hasErrors"
           @click="handleSubmit"
         >
           <span v-if="!isLoading">Сохранить</span>
@@ -52,7 +57,6 @@ const props = defineProps({
     default: () => [],
   },
   isOpen: {
-    // Добавлен пропс isOpen
     type: Boolean,
     required: true,
   },
@@ -60,10 +64,12 @@ const props = defineProps({
 
 const emit = defineEmits(["close", "success"]);
 const workoutsStore = useWorkoutsStore();
-const { $toast } = useNuxtApp();
+
 const progressValues = ref({});
 const isLoading = ref(false);
 const showSuccess = ref(false);
+const errors = ref({});
+const hasErrors = computed(() => Object.keys(errors.value).length > 0);
 
 // Инициализация значений
 watch(
@@ -73,9 +79,45 @@ watch(
       acc[exercise._id] = exercise.currentProgress || 0;
       return acc;
     }, {});
+    errors.value = {}; // Очищаем ошибки при обновлении упражнений
   },
   { immediate: true }
 );
+
+const validateInput = () => {
+  errors.value = {};
+  props.exercises.forEach((exercise) => {
+    const rawValue = progressValues.value[exercise._id];
+
+    // Проверяем, является ли значение строкой с точкой или запятой
+    if (typeof rawValue === "string") {
+      // Проверяем наличие разделителей
+      if (rawValue.includes(".") || rawValue.includes(",")) {
+        errors.value[exercise._id] = "Число должно быть целым";
+        return;
+      }
+
+      // Удаляем пробелы
+      const trimmedValue = rawValue.trim();
+
+      // Проверяем, является ли значение числом
+      if (!/^\d+$/.test(trimmedValue)) {
+        errors.value[exercise._id] = "Введите корректное целое число";
+        return;
+      }
+    }
+
+    // Преобразуем в число
+    const value = Number(rawValue);
+
+    // Проверяем корректность значения
+    if (isNaN(value) || value < 0 || value > exercise.quantity) {
+      errors.value[
+        exercise._id
+      ] = `Значение должно быть целым числом от 0 до ${exercise.quantity}`;
+    }
+  });
+};
 
 const handleClose = () => {
   if (!isLoading.value) {
@@ -90,50 +132,30 @@ onMounted(() => {
   }
 });
 
-
 const handleSubmit = async () => {
-    try {
-      // Собираем данные прогресса
-      const progressData = props.exercises.map((exercise) => {
-        const enteredValue = Number(progressValues.value[exercise._id]);
-        const target = exercise.target || 0;
-  
-        // Проверяем, не превышает ли введённое значение целевое
-        if (enteredValue > target) {
-          throw new Error(`Нельзя ввести больше ${target} повторений для упражнения "${exercise.name}"`);
-        }
-        
-        return enteredValue;
-      });
-  
-      // Проверяем, что все значения корректны
-      if (progressData.some((value, index) => value > props.exercises[index].target)) {
-        throw new Error('Введены некорректные значения повторений');
-      }
-  
-      // Отправляем данные
-      await workoutsStore.saveWorkoutProgress(
-        props.courseId,
-        props.workoutId,
-        progressData
-      );
-  
-      showSuccess.value = true;
-      emit('success');
-    } catch (error) {
-      console.error('Ошибка валидации:', error.message);
-      $toast.error(error.message);
-    }
-  };
+  try {
+    validateInput();
+    if (hasErrors.value) return;
 
-watchEffect(() => {
-  console.log("Modal props:", {
-    isOpen: props.isOpen,
-    courseId: props.courseId,
-    workoutId: props.workoutId,
-    exercises: props.exercises,
-  });
-});
+    const progressData = props.exercises.map((exercise) => {
+      const enteredValue = Number(progressValues.value[exercise._id]);
+      return enteredValue;
+    });
+
+    await workoutsStore.saveWorkoutProgress(
+      props.courseId,
+      props.workoutId,
+      progressData
+    );
+
+    showSuccess.value = true;
+    emit("success");
+    emit("close");
+  } catch (error) {
+    console.error("Ошибка валидации:", error.message);
+    errors.value.general = error.message; // Отображаем общую ошибку
+  }
+};
 </script>
 
 <style lang="scss" scoped>
@@ -235,5 +257,20 @@ watchEffect(() => {
   to {
     transform: rotate(360deg);
   }
+}
+
+.error-message {
+  color: red;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.exercise-input:invalid {
+  border-color: red;
+}
+
+.save-button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

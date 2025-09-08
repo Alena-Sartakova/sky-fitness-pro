@@ -166,9 +166,9 @@ const workout = computed(() => {
 const getProgressPercentage = (exercise) => {
   const index = workout.value.exercises?.indexOf(exercise) ?? -1;
   const current = index !== -1 ? progress.value?.[index] || 0 : 0;
-  const target = exercise?.target || 100; // Если target не указан, считаем 100
+  const quantity = exercise?.quantity || 100; 
   
-  return Math.min(Math.round((current / target) * 100), 100);
+  return Math.min(Math.round((current / quantity) * 100), 100);
 };
 
 const progressButtonText = computed(() => {
@@ -176,7 +176,7 @@ const progressButtonText = computed(() => {
 
   const isAllZero = progress.value.every((v) => v === 0);
   const isAllCompleted = progress.value.every(
-    (v, i) => v >= workout.value.exercises?.[i]?.target || 0
+    (v, i) => v >= workout.value.exercises?.[i]?.quantity || 0
   );
 
   return isAllZero
@@ -199,27 +199,34 @@ const openModal = () => {
 const handleProgressSuccess = async () => {
   try {
     // Обновляем прогресс из хранилища
-    const updatedProgress = await workoutsStore.fetchWorkoutProgress(
-      courseId.value,
-      workoutId.value
-    );
+    await workoutsStore.fetchWorkoutProgress(courseId.value, workoutId.value);
     
-    // Обновляем локальное состояние
-    progress.value = updatedProgress.progressData || [];
+    // Обновляем локальное состояние прогресса
+    progress.value = workoutsStore.workoutProgress[workoutId.value]?.progressData || [];
+    
+    // Проверяем, что прогресс обновился
+    if (!progress.value.length) {
+      throw new Error('Прогресс не был обновлен');
+    }
     
     console.log('Прогресс успешно обновлен:', progress.value);
+    
   } catch (error) {
     console.error('Ошибка при обновлении прогресса:', error);
-    $toast.error('Не удалось обновить прогресс');
   }
 };
 
+// Добавляем watcher для отслеживания изменений прогресса в сторе
 watch(
-  () => workoutsStore.isLoading,
-  (isLoading) => {
-    console.log("[Store] Loading state changed:", isLoading);
-  }
+  () => workoutsStore.workoutProgress[workoutId.value],
+  async (newProgress) => {
+    if (newProgress) {
+      progress.value = newProgress.progressData || [];
+    }
+  },
+  { deep: true }
 );
+
 </script>
 
 <style scoped>

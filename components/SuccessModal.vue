@@ -1,5 +1,5 @@
 <template>
-    <div class="success-overlay" @click.self="$emit('close')">
+    <div class="success-overlay" @click.self="handleClose">
     <div class="success-content">
       <div class="checkmark">✓</div>
       <h3 class="success-title">Прогресс сохранен!</h3>
@@ -8,7 +8,18 @@
 </template>
 
 <script setup>
+const emit = defineEmits(['close'])
 
+onMounted(() => {
+  // Закрываем окно через 2 секунды
+  setTimeout(() => {
+    emit('close')
+  }, 2000)
+})
+
+const handleClose = () => {
+  emit('close')
+}
 </script>
 
 <style lang="scss" scoped>
