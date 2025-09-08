@@ -1,7 +1,7 @@
 <template>
   <div v-if="isOpen" class="modal-overlay" @click.self="handleClose">
     <div class="modal">
-      <h2 class="modal-title">Введите прогресс</h2>
+      <h2 class="modal-title">Мой прогресс</h2>
 
       <div class="exercises-list">
         <div
@@ -33,7 +33,7 @@
           @click="handleSubmit"
         >
           <span v-if="!isLoading">Сохранить</span>
-          <LoaderIcon v-else class="loader" />
+          
         </button>
       </div>
     </div>
@@ -219,22 +219,23 @@ const handleSubmit = async () => {
 
 .modal-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
 }
 
 .save-button {
-  background: #4299e1;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
+    width: 100%;
+    max-width: 200px;
+    padding: 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background-color: #bcec30;
 
-  &:hover {
-    background: #3182ce;
-  }
+    &:hover {
+      background-color: #000000;
+      color: #ffffff;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
 
   &:disabled {
     background: #cbd5e0;

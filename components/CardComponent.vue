@@ -344,17 +344,18 @@ const closeWorkoutModal = () => {
 }
 
 .train-button {
-  margin-top: 16px;
-  padding: 10px 16px;
-  background: #ff6600;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  width: 100%;
+    width: 100%;
+    max-width: 200px;
+    padding: 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background-color: #bcec30;
 
-  &:hover {
-    background: #e65c00;
-  }
+    &:hover {
+      background-color: #000000;
+      color: #ffffff;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
 }
 </style>

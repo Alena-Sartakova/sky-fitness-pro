@@ -31,36 +31,35 @@
       <!-- Упражнения -->
       <div class="exercises-list">
         <h3 class="workout-title">{{ workout.name }}</h3>
-        <div
-          v-for="(exercise, index) in workout.exercises"
-          :key="exercise._id || index"
-          class="exercise-card"
-        >
-          <h3 class="exercise-title">{{ exercise.name }}</h3>
+        <div class="exercise-wrapper">
+          <div
+            v-for="(exercise, index) in workout.exercises"
+            :key="exercise._id || index"
+            class="exercise-card"
+          >
+            <h3 class="exercise-title">
+              {{ exercise.name }} {{ getProgressPercentage(exercise) }}%
+            </h3>
 
-          <div class="progress-section">
-            <div class="progress-bar">
-              <div
-                class="progress-fill"
-                :style="{ width: getProgressPercentage(exercise) + '%' }"
-              />
-            </div>
-
-            <div class="progress-text">
-              {{ getProgressPercentage(exercise) }}%
+            <div class="progress-section">
+              <div class="progress-bar">
+                <div
+                  class="progress-fill"
+                  :style="{ width: getProgressPercentage(exercise) + '%' }"
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Кнопки действий -->
-      <div class="action-buttons">
-        <button
-          :class="['progress-btn', { 'partial-progress': isPartialProgress }]"
-          @click="openModal"
-        >
-          {{ progressButtonText }}
-        </button>
+        <!-- Кнопки действий -->
+        <div class="action-buttons">
+          <button
+            :class="['progress-btn', { 'partial-progress': isPartialProgress }]"
+            @click="openModal"
+          >
+            {{ progressButtonText }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -166,8 +165,8 @@ const workout = computed(() => {
 const getProgressPercentage = (exercise) => {
   const index = workout.value.exercises?.indexOf(exercise) ?? -1;
   const current = index !== -1 ? progress.value?.[index] || 0 : 0;
-  const quantity = exercise?.quantity || 100; 
-  
+  const quantity = exercise?.quantity || 100;
+
   return Math.min(Math.round((current / quantity) * 100), 100);
 };
 
@@ -200,19 +199,19 @@ const handleProgressSuccess = async () => {
   try {
     // Обновляем прогресс из хранилища
     await workoutsStore.fetchWorkoutProgress(courseId.value, workoutId.value);
-    
+
     // Обновляем локальное состояние прогресса
-    progress.value = workoutsStore.workoutProgress[workoutId.value]?.progressData || [];
-    
+    progress.value =
+      workoutsStore.workoutProgress[workoutId.value]?.progressData || [];
+
     // Проверяем, что прогресс обновился
     if (!progress.value.length) {
-      throw new Error('Прогресс не был обновлен');
+      throw new Error("Прогресс не был обновлен");
     }
-    
-    console.log('Прогресс успешно обновлен:', progress.value);
-    
+
+    console.log("Прогресс успешно обновлен:", progress.value);
   } catch (error) {
-    console.error('Ошибка при обновлении прогресса:', error);
+    console.error("Ошибка при обновлении прогресса:", error);
   }
 };
 
@@ -226,7 +225,6 @@ watch(
   },
   { deep: true }
 );
-
 </script>
 
 <style scoped>
@@ -284,23 +282,32 @@ watch(
   border: none;
 }
 
+.exercise-wrapper {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); 
+}
+
 .exercises-list {
   margin: 3rem 0;
   display: grid;
   gap: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .exercise-card {
   background: white;
   padding: 1.5rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .exercise-title {
   color: #2c3e50;
   margin-bottom: 1rem;
   font-size: 1.2rem;
+  flex: 1; 
 }
 
 .progress-section {
@@ -311,10 +318,11 @@ watch(
 
 .progress-bar {
   flex-grow: 1;
-  height: 12px;
+  height: 6px;
   background: #f0f0f0;
   border-radius: 6px;
   overflow: hidden;
+  margin-top: auto; 
 }
 
 .progress-fill {
@@ -331,19 +339,23 @@ watch(
 }
 
 .action-buttons {
-  margin-top: 2rem;
-  text-align: center;
+  margin: 2rem;
 }
 
 .progress-btn {
-  background: #42b983;
-  color: white;
-  padding: 12px 30px;
-  border-radius: 25px;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
-  border: none;
-  cursor: pointer;
+    width: 100%;
+    max-width: 200px;
+    padding: 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background-color: #bcec30;
+
+    &:hover {
+      background-color: #000000;
+      color: #ffffff;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
 }
 
 .progress-btn.partial-progress {
