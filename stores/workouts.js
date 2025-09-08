@@ -42,54 +42,54 @@ export const useWorkoutsStore = defineStore('workouts', {
 
       async fetchCourseProgress(courseId) {
         try {
-        const userStore = useUserStore();
-        
-        try {
-        const response = await $fetch(`https://wedev-api.sky.pro/api/fitness/users/me/progress`, {
-        params: { courseId },
-        headers: {
-        Authorization: `Bearer ${userStore.token}`
-        }
-        });
-        
-        // Проверяем, что response содержит нужные данные
-        if (response && response.workoutsProgress) {
-        this.courseProgress = {
-        [courseId]: response
-        };
-        
-        // Обновляем статусы завершённых тренировок только если есть данные
-        response.workoutsProgress.forEach(workoutProgress => {
-        this.workoutsCompleted[workoutProgress.workoutId] = workoutProgress.workoutCompleted;
-        });
-        } else {
-        // Если прогресса нет, инициализируем пустые данные
-        this.courseProgress = {
-        [courseId]: {
-        workoutsProgress: []
-        }
-        };
-        }
-        
-        } catch (apiError) {
-        // Если API вернул ошибку 404 (прогресс не найден)
-        if (apiError.response && apiError.response.status === 404) {
-        console.log('Прогресс для курса не найден, инициализируем пустые данные');
-        this.courseProgress = {
-        [courseId]: {
-        workoutsProgress: []
-        }
-        };
-        } else {
-        throw apiError;
-        }
-        }
-        
+          const userStore = useUserStore();
+      
+          // Проверяем, есть ли уже данные в хранилище
+          if (this.courseProgress[courseId]) {
+            return; // Если данные уже загружены, не делаем повторный запрос
+          }
+      
+          try {
+            const response = await $fetch(`https://wedev-api.sky.pro/api/fitness/users/me/progress`, {
+              params: { courseId },
+              headers: {
+                Authorization: `Bearer ${userStore.token}`
+              }
+            });
+      
+            // Сохраняем данные только для конкретного курса
+            this.courseProgress = {
+              ...this.courseProgress, // Сохраняем существующие данные
+              [courseId]: response
+            };
+      
+            if (response && response.workoutsProgress) {
+              // Обновляем статусы завершённых тренировок
+              response.workoutsProgress.forEach(workoutProgress => {
+                this.workoutsCompleted[workoutProgress.workoutId] = workoutProgress.workoutCompleted;
+              });
+            } else {
+              // Если прогресса нет, инициализируем пустые данные
+              this.courseProgress[courseId] = {
+                workoutsProgress: []
+              };
+            }
+          } catch (apiError) {
+            if (apiError.response && apiError.response.status === 404) {
+              console.log('Прогресс для курса не найден, инициализируем пустые данные');
+              this.courseProgress[courseId] = {
+                workoutsProgress: []
+              };
+            } else {
+              throw apiError;
+            }
+          }
         } catch (error) {
-        this.error = this.handleError(error);
-        throw error;
+          this.error = this.handleError(error);
+          throw error;
         }
-       },
+      },
+      
 
     async fetchWorkoutProgress(courseId, workoutId) {
       try {

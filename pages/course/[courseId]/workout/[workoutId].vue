@@ -327,7 +327,7 @@ watch(
 
 .progress-fill {
   height: 100%;
-  background: #42b983;
+  background: #00C1FF;
   transition: width 0.3s ease;
 }
 
@@ -358,14 +358,6 @@ watch(
     }
 }
 
-.progress-btn.partial-progress {
-  background: #ffb300;
-}
-
-.progress-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(66, 185, 131, 0.3);
-}
 
 .retry-btn {
   background: #dc3545;

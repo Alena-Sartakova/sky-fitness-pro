@@ -42,6 +42,15 @@
           <span class="meta-text">{{ formattedDifficulty }}</span>
         </div>
         <!-- Место для прогресс бара -->
+        <div v-if="props.isProfilePage" class="progress-container">
+          <span class="progress-text">Прогресс {{ progressPercentage }}%</span>
+          <div
+            class="progress-bar"
+            :style="{ width: progressPercentage + '%' }"
+          ></div>
+          
+        </div>
+
       </div>
       <button
         v-if="showTrainingButton"
@@ -65,10 +74,12 @@ import { NuxtLink } from "#components";
 import { computed, ref, watch } from "vue";
 import { useCoursesStore } from "@/stores/courses";
 import { useUserStore } from "@/stores/user";
+import { useWorkoutsStore } from "@/stores/workouts";
 
 const isLocalAdded = ref(false);
 const userStore = useUserStore();
 const coursesStore = useCoursesStore();
+const workoutsStore = useWorkoutsStore();
 const showWorkoutModal = ref(false);
 const sortedWorkouts = ref([]);
 
@@ -77,17 +88,17 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-isProfilePage: {
-  type: Boolean,
-  default: false,
-  // Добавляем преобразование типа
-  customValidator: (value) => {
-    if (typeof value === 'string') {
-      return value.toLowerCase() === 'true';
-    }
-    return typeof value === 'boolean';
-  }
-}
+  isProfilePage: {
+    type: Boolean,
+    default: false,
+    // Добавляем преобразование типа
+    customValidator: (value) => {
+      if (typeof value === "string") {
+        return value.toLowerCase() === "true";
+      }
+      return typeof value === "boolean";
+    },
+  },
 });
 
 const userCourses = computed(() => {
@@ -171,20 +182,32 @@ const daysText = computed(() => {
 });
 
 const showTrainingButton = computed(() => {
-  return props.isProfilePage;
+  return props.isProfilePage && props.course._id;
 });
 
 // Вычисляемое свойство для текста кнопки
 const trainingButtonText = computed(() => {
-  if (!props.course.progress) {
+  const courseId = props.course._id;
+  const courseProgress = workoutsStore.courseProgress[courseId]; // Исправлено обращение
+
+  if (!courseProgress || !courseProgress.workoutsProgress) {
     return "Начать тренировку";
-  } else if (props.course.progress < 100) {
+  }
+
+  const completedWorkouts = courseProgress.workoutsProgress.filter(
+    (wp) => wp.workoutCompleted
+  ).length;
+  const totalWorkouts = courseProgress.workoutsProgress.length;
+  const progress = (completedWorkouts / totalWorkouts) * 100 || 0;
+
+  if (progress === 0) {
+    return "Начать тренировку";
+  } else if (progress < 100) {
     return "Продолжить тренировку";
   } else {
     return "Начать заново";
   }
 });
-
 
 const extractWorkoutNumber = (name) => {
   const match = name.match(/(урок|день|lesson|day)\s*(\d+)/i);
@@ -208,18 +231,19 @@ const sortWorkouts = (workouts) => {
 const handleStartTraining = async (e) => {
   e.preventDefault();
   e.stopPropagation();
-  console.log('Выбран курс:', {
-      id: props.course._id,
-      name: props.course.name,
-      difficulty: props.course.difficulty,
-      duration: props.course.durationInDays
-    });
+  console.log("Выбран курс:", {
+    id: props.course._id,
+    name: props.course.name,
+    difficulty: props.course.difficulty,
+    duration: props.course.durationInDays,
+  });
   try {
     // Получаем и сортируем тренировки
-    const rawWorkouts = await coursesStore.fetchCourseWorkouts(props.course._id);
+    const rawWorkouts = await coursesStore.fetchCourseWorkouts(
+      props.course._id
+    );
     sortedWorkouts.value = sortWorkouts(rawWorkouts);
     showWorkoutModal.value = true;
-    
   } catch (error) {
     console.error("Ошибка при получении тренировок:", error);
     // Можно добавить уведомление об ошибке
@@ -229,9 +253,46 @@ const handleStartTraining = async (e) => {
 const closeWorkoutModal = () => {
   showWorkoutModal.value = false;
 };
+
+// Вычисляемое свойство прогресса
+const progressPercentage = computed(() => {
+  const courseId = props.course._id;
+  if (!courseId) return 0;
+
+  const courseProgress = workoutsStore.courseProgress[courseId];
+
+  if (!courseProgress || !courseProgress.workoutsProgress) return 0;
+
+  const completedWorkouts = courseProgress.workoutsProgress.filter(
+    (wp) => wp.workoutCompleted
+  ).length;
+  const totalWorkouts = courseProgress.workoutsProgress.length;
+
+  return totalWorkouts > 0 ? (completedWorkouts / totalWorkouts) * 100 : 0;
+});
+
+// Загружаем прогресс сразу при монтировании
+onMounted(async () => {
+  if (props.isProfilePage && props.course._id) {
+    try {
+      // Проверяем, есть ли уже данные в хранилище
+      if (!workoutsStore.courseProgress[props.course._id]) {
+        await workoutsStore.fetchCourseProgress(props.course._id);
+      }
+    } catch (error) {
+      console.error("Ошибка загрузки прогресса:", error);
+    }
+  }
+});
 </script>
 
 <style scoped>
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: #333;
+}
+
 .card {
   max-width: 346px;
   display: flex;
@@ -299,6 +360,11 @@ const closeWorkoutModal = () => {
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-top: auto;
+
+  .progress-container {
+    grid-column: span 3;
+    padding: 8px;
+  }
 }
 
 .meta-item {
@@ -344,18 +410,35 @@ const closeWorkoutModal = () => {
 }
 
 .train-button {
-    width: 100%;
-    max-width: 200px;
-    padding: 12px;
-    border-radius: 16px;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    background-color: #bcec30;
+  width: 100%;
+  max-width: 200px;
+  padding: 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background-color: #bcec30;
 
-    &:hover {
-      background-color: #000000;
-      color: #ffffff;
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
+  &:hover {
+    background-color: #000000;
+    color: #ffffff;
+  }
+}
+
+.progress-container {
+  margin-top: 16px;
+  width: 100%;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #00c1ff;
+  border-radius: 8px;
+  width: 0;
+  max-width: 100%;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: #333;
 }
 </style>
