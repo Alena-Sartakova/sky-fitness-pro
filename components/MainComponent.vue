@@ -2,27 +2,25 @@
   <div class="wrapper">
     <div class="text-container">
       <h2 class="main-title">
-        Начните заниматься спортом <br >и улучшите качество жизни
+        Начните заниматься спортом <br />и улучшите качество жизни
       </h2>
     </div>
     <div class="image-container">
       <img
         src="../assets/img/Group 1597880551.png"
         alt="Измени свое тело за полгода"
-      >
+      />
     </div>
   </div>
 
   <CardCaseComponent
-      :courses="coursesStore.getAllCourses"
-      :is-loading="coursesStore.isLoading"
-      :has-error="coursesStore.hasError"
-
-    />
+    :courses="coursesStore.getAllCourses"
+    :is-loading="coursesStore.isLoading"
+    :has-error="coursesStore.hasError"
+  />
 </template>
 
 <script setup>
-
 const coursesStore = useCoursesStore();
 
 onMounted(async () => {
@@ -43,17 +41,16 @@ onMounted(async () => {
 }
 
 .main-title {
-  font-size: 45px;
+  font-size: 60px;
   line-height: 1.2;
   margin: 0;
+  font-weight: 500;
 }
 
 .image-container {
   flex: 0 0 auto;
   max-width: 300px;
 }
-
-
 
 @media (max-width: 768px) {
   .wrapper {
@@ -62,7 +59,11 @@ onMounted(async () => {
   }
 
   .main-title {
-    font-size: 40px;
+    font-size: 32px;
+  }
+
+  .image-container {
+    display: none;
   }
 }
 </style>

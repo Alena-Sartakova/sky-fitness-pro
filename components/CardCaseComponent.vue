@@ -1,53 +1,56 @@
 <template>
-    <div class="content-container">
-      <div v-if="isLoading" class="status-message">
-        Загрузка курсов...
-      </div>
-      <div v-else-if="hasError" class="status-message error">
-        {{ hasError }}
-      </div>
-      <div v-else-if="!courses || courses.length === 0" class="status-message">
+  <div class="content-container">
+    <div v-if="isLoading" class="status-message">Загрузка курсов...</div>
+    <div v-else-if="hasError" class="status-message error">
+      {{ hasError }}
+    </div>
+    <div v-else-if="!courses || courses.length === 0" class="status-message">
       Курсов пока нет
     </div>
-      <div v-else class="cards-grid">
-        <CardComponent
-          v-for="course in courses"
-          :key="course._id"
-          :course="course"
-          :is-profile-page="isProfilePage" 
-        />
-      </div>
+    <div v-else class="cards-grid">
+      <CardComponent
+        v-for="course in courses"
+        :key="course._id"
+        :course="course"
+        :is-profile-page="isProfilePage"
+      />
     </div>
-  </template>
-  
-  <script setup>
-  import { defineProps } from 'vue';
-  
-  defineProps({
-    courses: {
-      type: Array,
-      required: true
-    },
-    isLoading: {
-      type: Boolean,
-      default: false
-    },
-    hasError: {
-        type: [String, Boolean],
-      default: ''
-    },
-    isProfilePage: {
+  </div>
+</template>
+
+<script setup>
+import { defineProps } from "vue";
+
+defineProps({
+  courses: {
+    type: Array,
+    required: true,
+  },
+  isLoading: {
     type: Boolean,
-    default: false
-  }
-  });
-  </script>
+    default: false,
+  },
+  hasError: {
+    type: [String, Boolean],
+    default: "",
+  },
+  isProfilePage: {
+    type: Boolean,
+    default: false,
+  },
+});
+</script>
 
 <style lang="scss" scoped>
 .cards-grid {
-display: flex;
-flex-wrap: wrap;
+  display: flex;
+  flex-wrap: wrap;
   gap: 40px;
+
+  @media (max-width: 768px) {
+    gap: 24px; 
+    justify-content: center;
+  }
 }
 
 .status-message {

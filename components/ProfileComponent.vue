@@ -9,7 +9,7 @@
     </div>
 
     <div v-else class="profile-content">
-      <h1>Мой профиль</h1>
+      <h1>Профиль</h1>
 
       <div class="profile-info">
         <div class="avatar">
@@ -17,12 +17,13 @@
         </div>
 
         <div class="details">
-          <p><strong>Имя:</strong> {{ userDisplayName || "Не указано" }}</p>
+          <p> {{ userDisplayName || "Не указано" }}</p>
           <p><strong>Email:</strong> {{ user.email || "Не указан" }}</p>
+          <button class="logout-btn" @click="handleLogout">Выйти</button>
         </div>
       </div>
 
-      <button class="logout-btn" @click="handleLogout">Выйти из системы</button>
+     
     </div>
 
     <!-- Добавляем условие отображения курсов только при авторизации -->
@@ -107,24 +108,30 @@ const handleLogout = () => {
 .profile-container {
   display: block;
   width: 100%;
-  max-width: 1200px;
-  padding: 20px;
+  
+  
   box-sizing: border-box;
 }
+
+h1 {
+  font-size: 40px;
+  margin-bottom: 30px;
+}
+
 .profile-content {
   width: 100%;
 }
 
 .profile-info {
   display: flex;
-  gap: 20px;
+  gap: 33px;
   margin-bottom: 20px;
+  height: 257px;
+  padding: 30px;
+  align-items: stretch;
 }
 
 .avatar {
-  width: 100px;
-  height: 100px;
-
   overflow: hidden;
 }
 
@@ -135,7 +142,21 @@ const handleLogout = () => {
 }
 
 .details {
-  flex: 1;
+ flex: 1;
+ display: flex;
+ flex-direction: column;
+ justify-content: space-between;
+}
+
+.details p:first-child {
+  font-size: 32px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.details p:nth-child(2) {
+  font-size: 18px;
+  margin: 0;
 }
 
 .logout-btn {
@@ -143,14 +164,53 @@ const handleLogout = () => {
     max-width: 200px;
     padding: 12px;
     border-radius: 16px;
-    font-size: 14px;
+    border: 1px solid #000;
+    color: #000;
+    font-size: 18px;
     transition: all 0.3s ease;
-    background-color: #bcec30;
+    background-color: white;
 
     &:hover {
-      background-color: #000000;
-      color: #ffffff;
-      transition: background-color 0.3s ease, color 0.3s ease;
+      background-color: #f5f5f5;
+      border-color: #666;
     }
+  
+}
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  .profile-info {
+    flex-direction: column;
+    padding: 20px;
+    gap: 20px;
+    height: 365px;
+  }
+
+  .avatar {
+    width: 141px;
+    height: 141px;
+    margin: 0 auto;
+  }
+
+  .details p:first-child {
+    font-size: 24px;
+    text-align: center;
+  }
+
+  .details p:nth-child(2) {
+    font-size: 16px;
+    text-align: center;
+  }
+
+  .logout-btn {
+    max-width: 283px;
+    margin: 0 auto;
+    padding: 10px;
+    font-size: 16px;
+  }
 }
 </style>

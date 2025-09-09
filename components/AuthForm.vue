@@ -199,8 +199,6 @@ watch([email, password, confirmPassword], () => {
     margin: 20px;
     padding: 30px;
     height: auto;
-    min-height: 400px;
-    max-height: 90vh;
   }
 }
 

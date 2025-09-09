@@ -182,7 +182,7 @@ const progressButtonText = computed(() => {
     ? "Заполнить свой прогресс"
     : isAllCompleted
     ? "Прогресс завершён"
-    : "Продолжить тренировку";
+    : "Обновить свой прогресс";
 });
 
 // Метод для открытия модального окна
@@ -284,7 +284,7 @@ watch(
 
 .exercise-wrapper {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); 
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .exercises-list {
@@ -307,7 +307,7 @@ watch(
   color: #2c3e50;
   margin-bottom: 1rem;
   font-size: 1.2rem;
-  flex: 1; 
+  flex: 1;
 }
 
 .progress-section {
@@ -322,12 +322,12 @@ watch(
   background: #f0f0f0;
   border-radius: 6px;
   overflow: hidden;
-  margin-top: auto; 
+  margin-top: auto;
 }
 
 .progress-fill {
   height: 100%;
-  background: #00C1FF;
+  background: #00c1ff;
   transition: width 0.3s ease;
 }
 
@@ -343,21 +343,20 @@ watch(
 }
 
 .progress-btn {
-    width: 100%;
-    max-width: 200px;
-    padding: 12px;
-    border-radius: 16px;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    background-color: #bcec30;
+  width: 100%;
+  max-width: 200px;
+  padding: 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background-color: #bcec30;
 
-    &:hover {
-      background-color: #000000;
-      color: #ffffff;
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
+  &:hover {
+    background-color: #000000;
+    color: #ffffff;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
 }
-
 
 .retry-btn {
   background: #dc3545;
@@ -391,6 +390,93 @@ watch(
 
   .progress-text {
     text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .workout-container {
+    padding: 10px;
+  }
+
+  .course-title {
+    font-size: 1.5rem !important;
+    text-align: center !important;
+    font-size: 24px !important;
+    text-align: left !important;
+  }
+
+  .workout-title {
+    font-size: 32px;
+    text-align: left;
+  }
+  .exercise-title {
+    font-size: 16px;
+    text-align: left;
+  }
+
+  .video-player {
+    height: 200px;
+    aspect-ratio: 16/9;
+  }
+
+  .exercise-wrapper {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+  }
+
+  .exercise-card {
+    padding: 1rem;
+    margin: 0 10px;
+  }
+
+  .exercise-title {
+    font-size: 1rem;
+    text-align: left !important;
+  }
+
+  .progress-btn {
+    max-width: 100% !important;
+    width: 100%;
+    padding: 15px !important;
+    font-size: 16px !important;
+  }
+
+  .action-buttons {
+    margin: 1rem 0;
+    padding: 0 10px;
+  }
+
+  .error-message {
+    margin: 1rem;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .retry-btn {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .course-title {
+    font-size: 24px !important;
+  }
+
+  .workout-title {
+ font-size: 32px; /* Сохраняем размер */
+ }
+
+  .video-player {
+    height: 180px;
+  }
+
+  .exercise-title {
+ font-size: 16px; /* Сохраняем размер */
+ }
+
+  .progress-bar {
+    height: 4px;
   }
 }
 </style>

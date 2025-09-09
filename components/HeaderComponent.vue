@@ -14,7 +14,16 @@
       <!-- Отображаем пользователя или кнопку входа -->
       <div v-if="currentUser" class="user-section">
         <button class="user-dropdown" @click="showDropdown = !showDropdown">
-          {{ userDisplayName }}
+          <!-- Десктопная версия -->
+          <span class="desktop-name">{{ userDisplayName }}</span>
+
+          <!-- Мобильная иконка -->
+          <img
+            src="../assets/img/icon/Profile.svg"
+            class="mobile-icon"
+            alt="Профиль"
+          />
+
           <svg class="dropdown-icon" viewBox="0 0 10 6" fill="currentColor">
             <path d="M0 0l5 5 5-5" />
           </svg>
@@ -83,8 +92,6 @@ const goToHome = () => {
   max-width: 1160px;
   margin: 0 auto;
   padding-bottom: 20px;
-  padding-right: 20px;
-  padding-left: 20px;
   width: 100%;
   margin: 0 auto;
   display: flex;
@@ -106,6 +113,10 @@ const goToHome = () => {
     .logo-text {
       font-size: 16px;
       line-height: 1.2;
+
+      @media (max-width: 768px) {
+        display: none;
+      }
     }
   }
 
@@ -123,17 +134,37 @@ const goToHome = () => {
     cursor: pointer;
     display: flex;
     align-items: center;
-  }
 
-  .dropdown-icon {
-    width: 12px;
-    height: 6px;
-    margin-left: 8px;
-    transition: transform 0.3s;
-  }
+    .desktop-name {
+      @media (max-width: 768px) {
+        display: none;
+      }
+    }
 
-  .user-dropdown.active .dropdown-icon {
-    transform: rotate(180deg);
+    .mobile-icon {
+      display: none;
+      width: 24px;
+      height: 24px;
+
+      @media (max-width: 768px) {
+        display: block;
+      }
+    }
+
+    .dropdown-icon {
+      width: 12px;
+      height: 6px;
+      margin-left: 8px;
+      transition: transform 0.3s;
+    }
+
+    &.active .dropdown-icon {
+      transform: rotate(180deg);
+    }
+
+    @media (max-width: 768px) {
+      padding: 8px;
+    }
   }
 
   .dropdown-menu {
@@ -170,7 +201,7 @@ const goToHome = () => {
     max-width: 200px;
     padding: 12px;
     border-radius: 16px;
-    font-size: 14px;
+    font-size: 18px;
     transition: all 0.3s ease;
     background-color: #bcec30;
 
@@ -178,6 +209,14 @@ const goToHome = () => {
       background-color: #000000;
       color: #ffffff;
       transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    @media (max-width: 768px) {
+      width: 100%;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   }
 
@@ -196,6 +235,13 @@ const goToHome = () => {
       background-color: #f5f5f5;
       border-color: #666;
     }
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    margin-top: 20px;
+    padding: 0 15px;
   }
 }
 </style>

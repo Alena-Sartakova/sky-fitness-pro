@@ -48,9 +48,7 @@
             class="progress-bar"
             :style="{ width: progressPercentage + '%' }"
           ></div>
-          
         </div>
-
       </div>
       <button
         v-if="showTrainingButton"
@@ -294,7 +292,8 @@ onMounted(async () => {
 }
 
 .card {
-  max-width: 346px;
+  max-width: 360px;
+  max-height: 649px;
   display: flex;
   flex-direction: column;
   background: white;
@@ -335,6 +334,7 @@ onMounted(async () => {
 }
 
 .card-content {
+  max-width: 300px;
   padding: 16px;
   flex-grow: 1;
   display: flex;
@@ -343,7 +343,7 @@ onMounted(async () => {
 }
 
 .card-title {
-  font-size: 20px;
+  font-size: 32px;
   margin: 0 0 12px 0;
   color: #1a2938;
   line-height: 1.3;
@@ -352,7 +352,7 @@ onMounted(async () => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 48px;
+  padding-bottom: 20px;
 }
 
 .meta-container {
@@ -372,9 +372,9 @@ onMounted(async () => {
   align-items: center;
   gap: 6px;
   background: #f7f7f7;
-  border-radius: 20px;
-  padding: 6px 12px;
-  font-size: 12px;
+  border-radius: 24px;
+  padding: 8px 12px;
+  font-size: 16px;
   max-width: 100%;
 }
 
@@ -389,6 +389,7 @@ onMounted(async () => {
   text-overflow: ellipsis;
   white-space: nowrap;
   flex-grow: 1;
+  font-size: 16px;
 }
 
 .icon {
@@ -411,12 +412,12 @@ onMounted(async () => {
 
 .train-button {
   width: 100%;
-  max-width: 200px;
   padding: 12px;
   border-radius: 16px;
-  font-size: 14px;
+  font-size: 16px;
   transition: all 0.3s ease;
   background-color: #bcec30;
+  margin-top: auto;
 
   &:hover {
     background-color: #000000;
@@ -427,6 +428,7 @@ onMounted(async () => {
 .progress-container {
   margin-top: 16px;
   width: 100%;
+  margin-bottom: 32px;
 }
 
 .progress-bar {
@@ -438,7 +440,8 @@ onMounted(async () => {
 }
 
 .progress-text {
-  font-size: 12px;
+  font-size: 16px;
   color: #333;
+  margin-bottom: 10px;
 }
 </style>

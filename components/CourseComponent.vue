@@ -38,6 +38,10 @@
       </div>
     </div>
 
+    <div class="mobile-image-containe">
+      <img src="../assets/img/course/Group-mobile.png" class="mobile-image" />
+    </div>
+
     <!-- Статичный блок преимуществ -->
     <div class="benefits-section">
       <div class="content-wrapper">
@@ -110,11 +114,36 @@ const userStore = useUserStore();
 const coursesStore = useCoursesStore();
 const isProcessing = ref(false);
 
+// Добавляем мобильную адаптацию
+const isMobile = ref(false);
+const checkDeviceType = () => {
+  isMobile.value = window.matchMedia("(max-width: 768px)").matches;
+};
+
+// Модифицируем вычисляемое свойство с сохранением старой логики
 const courseImage = computed(() => {
-  return new URL(
-    `../assets/img/course/${props.course.nameEN}.png`,
-    import.meta.url
-  ).href;
+  const basePath = "../assets/img/";
+  const deviceFolder = isMobile.value ? "main/" : "course/";
+
+  try {
+    return new URL(
+      `${basePath}${deviceFolder}${props.course.nameEN}.png`,
+      import.meta.url
+    ).href;
+  } catch {
+    console.warn("Используется fallback-изображение");
+    return new URL(`${basePath}default.png`, import.meta.url).href;
+  }
+});
+// Жизненный цикл с добавлением новой логики
+onMounted(() => {
+  checkDeviceType();
+  window.addEventListener("resize", checkDeviceType);
+  console.log("Компонент инициализирован");
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", checkDeviceType);
 });
 
 const isAuthenticated = computed(() => userStore.isAuthenticated);
@@ -172,6 +201,7 @@ const handleAuthRedirect = () => {
 .course-image-wrapper {
   position: relative;
   overflow: hidden;
+  border-radius: 16px;
 
   .course-main-image {
     width: 100%;
@@ -341,10 +371,12 @@ const handleAuthRedirect = () => {
   top: -15%;
   right: 5%;
   width: 40%;
-  height: auto;
-  -o-object-fit: contain;
   object-fit: contain;
   z-index: 3;
+}
+
+.mobile-image {
+  display: none; /* Скрываем по умолчанию */
 }
 
 .auth-button {
@@ -379,5 +411,92 @@ const handleAuthRedirect = () => {
   .section-title {
     font-size: 1.1rem;
   }
+
+  .target-list {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .target-item {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    min-width: unset;
+    height: 343px;
+    padding: 1rem;
+    border-radius: 6px;
+  }
+
+  .directions-list {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .image-overlay {
+    position: relative;
+  }
+
+  .background-image,
+  .foreground-image {
+    display: none; /* Скрываем десктопные изображения */
+  }
+
+  .mobile-image-container {
+    position: relative;
+    z-index: 1;
+    height: 180px;
+    margin: -40px 0 -60px; /* Корректировка наложения */
+  }
+
+  .mobile-image {
+    position: absolute;
+    display: block;
+    width: 100%;
+    left: 0;
+    top: 850px;
+  }
+
+  .directions-section {
+    position: relative;
+  }
+
+  .benefits-section {
+    position: relative;
+  }
+
+  .content-wrapper {
+    /* Сброс позиционирования и размеров */
+    position: static;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    height: auto;
+    margin: 0;
+    padding: 0;
+
+    /* Отмена трансформаций */
+    transform: none;
+
+    /* Сброс фона */
+    background: transparent;
+    box-shadow: none;
+
+    /* Восстановление блочной модели */
+    display: block;
+    box-sizing: border-box;
+    
+    /* Адаптивные отступы */
+    padding: 15px;
+
+    .section-title-benefit,
+    .benefits-list {
+      max-width: 100%;
+      padding-left: 15px;
+      padding-right: 15px;
+    }
+  }
+  h3 {
+    font-size: 32px;
+  }
+
 }
 </style>
