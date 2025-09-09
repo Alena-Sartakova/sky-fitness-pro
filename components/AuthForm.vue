@@ -269,6 +269,7 @@ input {
   height: 52px;
   padding: 10px;
   border-radius: 26px;
+  font-size: 18px;
   cursor: pointer;
 
   &:disabled {

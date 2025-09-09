@@ -344,10 +344,10 @@ watch(
 
 .progress-btn {
   width: 100%;
-  max-width: 200px;
+  max-width: 320px;
   padding: 12px;
   border-radius: 16px;
-  font-size: 14px;
+  font-size: 18px;
   transition: all 0.3s ease;
   background-color: #bcec30;
 

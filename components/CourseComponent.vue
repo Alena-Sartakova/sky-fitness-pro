@@ -269,7 +269,8 @@ const handleAuthRedirect = () => {
   flex: 1 1 calc(33.33% - 1rem);
   min-width: 150px;
   width: calc(33.33% - 1rem);
-  height: 100px;
+  height: 141px;
+  font-size: 24px;
 
   .fit-text {
     line-height: 1.4;
@@ -303,7 +304,7 @@ const handleAuthRedirect = () => {
   align-items: center;
   gap: 10px;
   padding: 10px 15px;
-
+  font-size: 24px;
   border-radius: 8px;
   flex: 1 1 calc(33.33% - 2rem);
 }
@@ -324,18 +325,17 @@ const handleAuthRedirect = () => {
 }
 
 .section-title-benefit {
-  font-size: 50px;
+  font-size: 60px;
   margin-bottom: 28px;
 }
 
 .content-wrapper {
-  width: 380px;
   margin-left: 2rem;
   margin-top: 2rem;
   margin-bottom: 1.5rem;
   display: block;
   padding: 1rem;
-  max-width: 437px;
+
 }
 
 .benefits-section {
@@ -380,7 +380,7 @@ const handleAuthRedirect = () => {
 }
 
 .auth-button {
-  width: 100%;
+  width: 437px;
   padding: 1rem;
   background: #bcec30;
   color: #000000;

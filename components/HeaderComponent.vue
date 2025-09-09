@@ -15,6 +15,7 @@
       <div v-if="currentUser" class="user-section">
         <button class="user-dropdown" @click="showDropdown = !showDropdown">
           <!-- Десктопная версия -->
+           <img src="../assets/img/icon/Profile.svg">
           <span class="desktop-name">{{ userDisplayName }}</span>
 
           <!-- Мобильная иконка -->
@@ -125,12 +126,16 @@ const goToHome = () => {
     cursor: pointer;
   }
 
+  .desktop-name {
+    padding-left: 16px;
+  }
+
   .user-dropdown {
     padding: 10px 20px;
     border: none;
     background-color: transparent;
     color: inherit;
-    font-size: 16px;
+    font-size: 24px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -179,22 +184,35 @@ const goToHome = () => {
     overflow: hidden;
   }
 
-  .dropdown-content {
-    padding: 24px 16px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 24px;
+.dropdown-content {
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
-    p {
-      margin: 0;
-      font-weight: 500;
-      color: #333;
-      font-size: 16px;
-      line-height: 1.5;
-    }
+  p:first-child { // Имя пользователя
+    font-size: 16px;
+    color: #000;
+    margin-bottom: 10px;
+    font-weight: 500;
+    line-height: 1.5;
   }
+
+  p:nth-child(2) { // Email
+    color: #999999;
+    font-size: 14px;
+    margin-bottom: 34px;
+    line-height: 1.4;
+  }
+
+  .custom-btn {
+    margin-bottom: 10px;
+  }
+
+  .custom-btn-exit {
+    margin-top: 10px;
+  }
+}
 
   .custom-btn {
     width: 100%;
@@ -230,6 +248,7 @@ const goToHome = () => {
     font-size: 14px;
     transition: all 0.3s ease;
     background-color: white;
+    font-size: 18px;
 
     &:hover {
       background-color: #f5f5f5;
