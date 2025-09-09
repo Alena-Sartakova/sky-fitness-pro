@@ -68,11 +68,11 @@
 </template>
 
 <script setup>
-import { NuxtLink } from "#components";
-import { computed, ref, watch } from "vue";
-import { useCoursesStore } from "@/stores/courses";
-import { useUserStore } from "@/stores/user";
-import { useWorkoutsStore } from "@/stores/workouts";
+
+import { computed, ref, watch, onMounted } from "vue";
+import { useCoursesStore } from "../stores/courses";
+import { useUserStore } from "../stores/user";
+import { useWorkoutsStore } from "../stores/workouts";
 
 const isLocalAdded = ref(false);
 const userStore = useUserStore();

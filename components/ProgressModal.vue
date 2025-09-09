@@ -43,6 +43,8 @@
 </template>
 
 <script setup>
+import { ref, computed, watch, onMounted } from 'vue'
+import { useWorkoutsStore } from '../stores/workouts'
 const props = defineProps({
   courseId: {
     type: String,
@@ -87,37 +89,27 @@ watch(
 const validateInput = () => {
   errors.value = {};
   props.exercises.forEach((exercise) => {
-    const rawValue = progressValues.value[exercise._id];
+    let rawValue = progressValues.value[exercise._id] || '';
 
-    // Проверяем, является ли значение строкой с точкой или запятой
-    if (typeof rawValue === "string") {
-      // Проверяем наличие разделителей
-      if (rawValue.includes(".") || rawValue.includes(",")) {
-        errors.value[exercise._id] = "Число должно быть целым";
-        return;
-      }
+    // Фильтрация на уровне ввода (оставляем только цифры)
+    rawValue = rawValue.toString().replace(/\D/g, '');
+    progressValues.value[exercise._id] = rawValue; // Обновляем значение
 
-      // Удаляем пробелы
-      const trimmedValue = rawValue.trim();
-
-      // Проверяем, является ли значение числом
-      if (!/^\d+$/.test(trimmedValue)) {
-        errors.value[exercise._id] = "Введите корректное целое число";
-        return;
-      }
+    // Проверка на пустую строку после фильтрации
+    if (rawValue === '') {
+      errors.value[exercise._id] = 'Введите значение';
+      return;
     }
 
-    // Преобразуем в число
     const value = Number(rawValue);
 
-    // Проверяем корректность значения
-    if (isNaN(value) || value < 0 || value > exercise.quantity) {
-      errors.value[
-        exercise._id
-      ] = `Значение должно быть целым числом от 0 до ${exercise.quantity}`;
+    // Валидация диапазона
+    if (value < 0 || value > exercise.quantity) {
+      errors.value[exercise._id] = `Допустимый диапазон: 0-${exercise.quantity}`;
     }
   });
 };
+
 
 const handleClose = () => {
   if (!isLoading.value) {

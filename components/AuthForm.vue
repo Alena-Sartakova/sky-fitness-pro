@@ -17,12 +17,14 @@
             placeholder="Email"
             required
             :class="{ 'error-field': emailError }"
+            @input="handleInput"
           />
           <input
             v-model="password"
             placeholder="Пароль"
             required
             :class="{ 'error-field': passwordError }"
+            @input="handleInput"
           />
           <input
             v-if="!isLogin"
@@ -30,6 +32,7 @@
             placeholder="Повторите пароль"
             required
             :class="{ 'error-field': confirmPasswordError }"
+            @input="handleInput"
           />
 
           <div v-if="userStore.error" class="error-message">
@@ -49,7 +52,8 @@
           </button>
           <button
             type="button"
-            class="register-button"
+            
+            class="toggle-button"
             @click="handleModeToggle"
           >
             {{ isLogin ? "Зарегистрироваться" : "Войти" }}
@@ -61,8 +65,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-import { useUserStore } from "@/stores/user";
+import { ref, computed, watch } from "vue";
+import { useUserStore } from "../stores/user";
 import { useRouter } from "vue-router";
 
 const props = defineProps({
@@ -87,7 +91,7 @@ const userStore = useUserStore();
 
 
 const email = ref("");
-const password = ref("");
+const password = ref('')
 const confirmPassword = ref("");
 
 // Реактивная валидация
@@ -141,6 +145,10 @@ const errorMessages = {
 const errorMessage = computed(() => {
   return errorMessages[userStore.error] || errorMessages["unknown-error"];
 });
+
+const handleInput = () => {
+  if (userStore.error) userStore.error = null;
+};
 
 const handleModeToggle = () => {
   if (props.isModal) {
@@ -256,7 +264,7 @@ input {
 }
 
 .login-button,
-.register-button {
+.toggle-button {
   width: 100%;
   height: 52px;
   padding: 10px;
@@ -286,13 +294,13 @@ input {
   color: #ffffff;
 }
 
-.register-button {
+.toggle-button {
   background-color: transparent;
   border: 1px solid #000000;
   color: #000000;
 }
 
-.register-button:hover {
+.toggle-button:hover {
   background-color: #e9eced;
 }
 

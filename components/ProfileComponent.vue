@@ -43,8 +43,8 @@
 </template>
 
 <script setup>
-import { useUserStore } from "@/stores/user";
-import { useCoursesStore } from "@/stores/courses";
+import { useUserStore } from "../stores/user";
+import { useCoursesStore } from "../stores/courses";
 import { computed, onMounted } from "vue";
 
 const userStore = useUserStore();
