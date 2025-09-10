@@ -1,8 +1,6 @@
 <template>
   <NuxtLayout name="layout-default">
-    <!-- Ваш основной контент здесь -->
     <div>
-      <!-- Например, маршрутизация или другие компоненты -->
       <NuxtPage />
     </div>
   </NuxtLayout>
