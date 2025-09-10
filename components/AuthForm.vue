@@ -170,7 +170,6 @@ const resetForm = () => {
   confirmPassword.value = "";
 };
 
-// Очистка ошибок при изменении данных
 watch([email, password, confirmPassword], () => {
   if (userStore.error) userStore.error = null;
 });

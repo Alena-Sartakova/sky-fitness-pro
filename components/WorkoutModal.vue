@@ -169,7 +169,7 @@ const startTraining = () => {
   router.push({
     path: `/course/${props.courseId}/workout/${selectedWorkout.value._id}`,
     query: {
-      courseName: course.value.name, // Передаем название курса
+      courseName: course.value.name, 
       courseDifficulty: course.value.difficulty,
     },
   });
