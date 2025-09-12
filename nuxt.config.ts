@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
-
+  compatibilityDate: '2025-09-12',
   css: ['~/assets/css/main.css'],
 
   modules: [
@@ -14,13 +14,12 @@ export default defineNuxtConfig({
     '@pinia/nuxt'
   ],
 
-  // Добавляем необходимые настройки для деплоя
   app: {
-    baseURL: '/sky-fitness-pro/', // Если репозиторий не в организации
-    // или '/', если репозиторий в организации
+    baseURL: '/sky-fitness-pro/'
   },
-  ssr: true, 
-
+  
+  ssr: true,
+  
   runtimeConfig: {
     public: {
       apiBase: process.env.API_URL || 'http://localhost:3000'
