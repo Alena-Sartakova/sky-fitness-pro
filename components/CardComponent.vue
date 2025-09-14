@@ -97,13 +97,6 @@ const props = defineProps({
   },
 });
 
-// Добавляем реактивное отслеживание завершенных тренировок
-const completedWorkouts = computed(() => {
-  const courseId = props.course._id;
-  const courseProgress = workoutsStore.courseProgress[courseId];
-  if (!courseProgress || !courseProgress.workoutsProgress) return 0;
-  return courseProgress.workoutsProgress.filter(wp => wp.workoutCompleted).length;
-});
 
 const userCourses = computed(() => {
   return userStore.currentUser?.user?.selectedCourses || [];
@@ -180,18 +173,6 @@ const showTrainingButton = computed(() => {
   return props.isProfilePage && props.course._id;
 });
 
-// Обновляем вычисляемое свойство прогресса
-const progressPercentage = computed(() => {
-  const courseId = props.course._id;
-  if (!courseId) return 0;
-
-  const courseProgress = workoutsStore.courseProgress[courseId];
-  if (!courseProgress || !courseProgress.workoutsProgress) return 0;
-
-  const totalWorkouts = courseProgress.workoutsProgress.length;
-  return totalWorkouts > 0 ? (completedWorkouts.value / totalWorkouts) * 100 : 0;
-});
-
 // Вычисляемое свойство для текста кнопки
 const trainingButtonText = computed(() => {
   const progress = progressPercentage.value;
@@ -247,19 +228,54 @@ const closeWorkoutModal = () => {
   showWorkoutModal.value = false;
 };
 
-// Загружаем прогресс сразу при монтировании
+// Получаем ID курса
+const courseId = computed(() => props.course._id);
+
+// Вычисляем прогресс на основе данных из хранилища
+const courseProgress = computed(() => 
+  workoutsStore.courseProgress[courseId.value] || {}
+);
+
+// Вычисляем общее количество тренировок
+const totalWorkouts = computed(() => {
+  if (!courseProgress.value.workoutsProgress) return 0;
+  return courseProgress.value.workoutsProgress.length;
+});
+
+// Вычисляем количество завершенных тренировок
+const completedWorkouts = computed(() => {
+  if (!courseProgress.value.workoutsProgress) return 0;
+  return courseProgress.value.workoutsProgress.filter(wp => wp.workoutCompleted).length;
+});
+
+// Вычисляем процент прогресса
+const progressPercentage = computed(() => {
+  if (!totalWorkouts.value) return 0;
+  return (completedWorkouts.value / totalWorkouts.value) * 100;
+});
+
+// Добавляем watcher для отслеживания изменений прогресса
+watch(
+  () => workoutsStore.courseProgress[courseId.value],
+  () => {
+    // При изменении прогресса обновляем данные
+  },
+  { deep: true }
+);
+
 onMounted(async () => {
-  if (props.isProfilePage && props.course._id) {
+  if (props.isProfilePage && courseId.value) {
     try {
-      // Проверяем, есть ли уже данные в хранилище
-      if (!workoutsStore.courseProgress[props.course._id]) {
-        await workoutsStore.fetchCourseProgress(props.course._id);
+      // Загружаем прогресс курса при монтировании
+      if (!workoutsStore.courseProgress[courseId.value]) {
+        await workoutsStore.fetchCourseProgress(courseId.value);
       }
     } catch (error) {
       console.error("Ошибка загрузки прогресса:", error);
     }
   }
 });
+
 </script>
 
 <style scoped>
