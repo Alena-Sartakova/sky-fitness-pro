@@ -65,25 +65,35 @@ const isOpen = ref(true);
 const selectedWorkout = ref(null);
 const workouts = ref([]);
 const course = ref(null);
+const { courseProgress } = storeToRefs(useWorkoutsStore());
 
 // Добавляем вычисляемое свойство для проверки завершения тренировки
-const isWorkoutCompleted = computed(() => {
-  return (workoutId) => {
-    if (!workoutId) return false;
-    return workoutsStore.getWorkoutCompletedStatus(workoutId);
-  };
+const isWorkoutCompleted = computed(() => (workoutId) => {
+  return courseProgress.value[props.courseId]?.workoutsProgress?.some(wp => 
+    wp.workoutId === workoutId && wp.workoutCompleted
+  ) || false;
 });
 
-const isWorkoutAvailable = computed(() => {
-  return (workoutIndex) => {
-    if (workoutIndex === 0) return true;
+watch(
+  () => courseProgress.value[props.courseId]?.workoutsProgress,
+  (newProgress) => {
+    if (!newProgress) return;
+    
+    // 3. Принудительное обновление через новый массив
+    workouts.value = workouts.value.map(w => ({
+      ...w,
+      progress: newProgress.find(p => p.workoutId === w._id) || {}
+    }));
+  },
+  { deep: true }
+);
 
-    const previousWorkout = workouts.value[workoutIndex - 1];
-    if (!previousWorkout) return false;
-
-    return workoutsStore.getWorkoutCompletedStatus(previousWorkout._id);
-  };
-});
+const isWorkoutAvailable = (workoutIndex) => {
+  if (workoutIndex === 0) return true;
+  
+  const previousWorkout = workouts.value[workoutIndex - 1];
+  return isWorkoutCompleted.value(previousWorkout?._id);
+};
 
 // Функция для извлечения номера из названия тренировки
 const extractWorkoutNumber = (name) => {
@@ -119,18 +129,42 @@ onMounted(async () => {
       workouts.value = sortWorkouts(rawWorkouts);
     }
 
-    // Получаем прогресс курса (с обработкой отсутствия данных)
-    try {
-      await workoutsStore.fetchCourseProgress(props.courseId);
-    } catch (progressError) {
-      if (progressError.response && progressError.response.status === 404) {
-        console.log("Прогресс курса не найден, продолжаем работу");
-      } else {
-        throw progressError;
+    // Проверяем наличие прогресса перед загрузкой
+    const existingProgress = workoutsStore.courseProgress[props.courseId];
+    
+    if (!existingProgress) {
+      try {
+        // Загружаем прогресс только если его нет
+        await workoutsStore.fetchCourseProgress(props.courseId);
+      } catch (progressError) {
+        if (progressError.response && progressError.response.status === 404) {
+          console.log("Прогресс курса не найден, продолжаем работу");
+        } else {
+          throw progressError;
+        }
       }
     }
 
-    // Выводим информацию о курсе в консоль
+    // Добавляем watcher для отслеживания изменений прогресса
+    watch(
+      () => workoutsStore.courseProgress[props.courseId],
+      async (newProgress) => {
+        if (!newProgress) return;
+
+        // Обновляем список тренировок с учетом прогресса
+        workouts.value = workouts.value.map(workout => {
+          const progress = newProgress.workoutsProgress.find(
+            wp => wp.workoutId === workout._id
+          );
+          return {
+            ...workout,
+            progress: progress || {}
+          };
+        });
+      },
+      { deep: true }
+    );
+
     console.log("📋 Открыт курс:", {
       id: course.value._id,
       name: course.value.name,
@@ -141,6 +175,7 @@ onMounted(async () => {
     console.error("Ошибка загрузки тренировок:", error);
   }
 });
+
 
 const getWorkoutName = (fullName) => {
   return fullName.split("/")[0].trim();
@@ -178,6 +213,7 @@ const closeModal = () => {
 
 
 </script>
+
 
 <style lang="scss" scoped>
 .modal {

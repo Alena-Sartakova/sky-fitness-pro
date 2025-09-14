@@ -13,11 +13,12 @@
           <input
             v-model="progressValues[exercise._id]"
             type="text"
+            
             min="0"
             class="exercise-input"
             placeholder="0"
             @input="validateInput"
-            @keypress="onlyNumbers($event)"
+             @keypress="onlyNumbers" 
           />
           <div v-if="errors[exercise._id]" class="error-message">
             {{ errors[exercise._id] }}
