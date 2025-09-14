@@ -1,0 +1,82 @@
+<script setup>
+//... остальной код
+
+const courseId = computed(() => props.course._id);
+
+// Модифицируем onMounted
+onMounted(async () => {
+ if (props.isProfilePage) {
+ try {
+ // Проверяем существование courseId
+ if (!courseId.value) {
+ console.warn('Course ID не определен');
+ return;
+ }
+ 
+ // Проверяем, загружены ли данные
+ if (!workoutsStore.courseProgress[courseId.value]) {
+ await workoutsStore.fetchCourseProgress(courseId.value);
+ }
+ 
+ // Ждем обновления данных
+ await updateProgress();
+ } catch (error) {
+ console.error('Ошибка при инициализации прогресса:', error);
+ }
+ }
+});
+
+// Модифицируем watcher для дополнительной защиты
+watch(
+ () => {
+ return {
+ progress: workoutsStore.courseProgress[courseId.value],
+ workouts: props.course.workouts
+ }
+ },
+ async (newValue) => {
+ try {
+ if (!newValue.progress || !newValue.workouts) return;
+ await updateProgress();
+ } catch (error) {
+ console.error('Ошибка в watcher:', error);
+ }
+ },
+ {
+ deep: true,
+ flush: 'post'
+ }
+);
+
+// Модифицируем функцию updateProgress
+const updateProgress = async () => {
+ try {
+ isProgressLoading.value = true;
+ 
+ // Добавляем проверку существования courseId
+ if (!courseId.value) return;
+ 
+ const storeProgress = workoutsStore.courseProgress[courseId.value]?.workoutsProgress || [];
+ 
+ const validCompleted = storeProgress.filter(wp => 
+ wp.workoutCompleted && 
+ courseWorkoutIds.value.has(wp.workoutId)
+ ).length;
+ 
+ const total = props.course.workouts?.length || 0;
+ 
+ progressData.value = {
+ completed: validCompleted,
+ total: total,
+ percentage: calculateProgressPercentage(validCompleted, total)
+ };
+ 
+ isProgressLoading.value = false;
+ } catch (error) {
+ console.error('Ошибка обновления прогресса:', error);
+ isProgressLoading.value = false;
+ }
+};
+
+//... остальной код
+</script>
