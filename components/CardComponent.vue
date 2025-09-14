@@ -110,29 +110,31 @@ const isAdded = computed(() => {
 const handleAdd = async (e) => {
   e.stopPropagation();
   try {
-    if (isLocalAdded.value || isAdded.value) {
-      // При удалении сбрасываем локальное состояние
-      isLocalAdded.value = false;
-      await coursesStore.removeCourse(props.course._id);
-    } else {
-      // При добавлении временно меняем состояние
-      isLocalAdded.value = true;
-      await coursesStore.addCourse(props.course._id);
-    }
-
-    // Проверяем успешность операции
-    const isCourseAdded = coursesStore.getUserCourses.includes(
-      props.course._id
-    );
-    if (isCourseAdded !== (isLocalAdded.value || isAdded.value)) {
-      isLocalAdded.value = isCourseAdded;
-    }
-  } catch (error) {
-    // Если произошла ошибка, возвращаем предыдущее состояние
-    isLocalAdded.value = !isLocalAdded.value;
-    console.error("Ошибка при изменении статуса курса:", error);
+  if (isLocalAdded.value || isAdded.value) {
+  // При удалении сбрасываем локальное состояние
+  isLocalAdded.value = false;
+  await coursesStore.removeCourse(props.course._id);
+  
+  // Добавляем очистку прогресса вручную
+  workoutsStore.courseProgress[props.course._id] = null;
+  workoutsStore.workoutsCompleted[props.course._id] = null;
+  } else {
+  isLocalAdded.value = true;
+  await coursesStore.addCourse(props.course._id);
   }
-};
+ 
+  // Проверяем успешность операции
+  const isCourseAdded = coursesStore.getUserCourses.includes(
+  props.course._id
+  );
+  if (isCourseAdded !== (isLocalAdded.value || isAdded.value)) {
+  isLocalAdded.value = isCourseAdded;
+  }
+  } catch (error) {
+  isLocalAdded.value = !isLocalAdded.value;
+  console.error("Ошибка при изменении статуса курса:", error);
+  }
+ };
 
 watch(
   () => coursesStore.getUserCourses,
@@ -195,8 +197,8 @@ const trainingButtonText = computed(() => {
   const completedWorkouts = courseProgress.workoutsProgress.filter(
     (wp) => wp.workoutCompleted
   ).length;
-  const totalWorkouts = courseProgress.workoutsProgress.length;
-  const progress = (completedWorkouts / totalWorkouts) * 100 || 0;
+  
+  const progress = (completedWorkouts / totalWorkoutsFromCourse.value) * 100 || 0;
 
   if (progress === 0) {
     return "Начать тренировку";
@@ -253,20 +255,25 @@ const closeWorkoutModal = () => {
 };
 
 // Вычисляемое свойство прогресса
+// Получаем общее количество тренировок из курса
+const totalWorkoutsFromCourse = computed(() => {
+  return props.course.workouts?.length || 0;
+});
+
+// Обновляем расчет прогресса
 const progressPercentage = computed(() => {
   const courseId = props.course._id;
-  if (!courseId) return 0;
-
   const courseProgress = workoutsStore.courseProgress[courseId];
 
   if (!courseProgress || !courseProgress.workoutsProgress) return 0;
 
   const completedWorkouts = courseProgress.workoutsProgress.filter(
-    (wp) => wp.workoutCompleted
+    wp => wp.workoutCompleted
   ).length;
-  const totalWorkouts = courseProgress.workoutsProgress.length;
 
-  return totalWorkouts > 0 ? (completedWorkouts / totalWorkouts) * 100 : 0;
+  return totalWorkoutsFromCourse.value > 0 
+    ? (completedWorkouts / totalWorkoutsFromCourse.value) * 100 
+    : 0;
 });
 
 // Загружаем прогресс сразу при монтировании

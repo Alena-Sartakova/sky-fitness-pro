@@ -26,7 +26,6 @@ export const useWorkoutsStore = defineStore('workouts', {
             }
           })
           
-          
           this.currentWorkout = response
           return response
         } catch (error) {
@@ -187,5 +186,6 @@ export const useWorkoutsStore = defineStore('workouts', {
       // Добавляем проверку существования workoutId
       return state.workoutsCompleted[workoutId] ?? false;
     },
+
   }
 })

@@ -54,7 +54,7 @@
         <!-- Кнопки действий -->
         <div class="action-buttons">
           <button
-            :class="['progress-btn', { 'partial-progress': isPartialProgress }]"
+            :class="['progress-btn','partial-progress']"
             @click="openModal"
           >
             {{ progressButtonText }}
