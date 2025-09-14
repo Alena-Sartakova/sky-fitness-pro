@@ -269,7 +269,6 @@ const handleAuthRedirect = () => {
   flex: 1 1 calc(33.33% - 1rem);
   min-width: 150px;
   width: calc(33.33% - 1rem);
-  height: 141px;
   font-size: 24px;
 
   .fit-text {
