@@ -15,7 +15,7 @@
       <div v-if="currentUser" class="user-section">
         <button class="user-dropdown" @click="showDropdown = !showDropdown">
           <!-- Десктопная версия -->
-           <img src="../assets/img/icon/Profile.svg">
+           <img class="desktop-icon" src="../assets/img/icon/Profile.svg">
           <span class="desktop-name">{{ userDisplayName }}</span>
 
           <!-- Мобильная иконка -->
@@ -261,6 +261,10 @@ const goToHome = () => {
   .header {
     margin-top: 20px;
     padding: 0 15px;
+  }
+
+  .desktop-icon {
+    display: none;
   }
 }
 </style>

@@ -452,7 +452,7 @@ const handleAuthRedirect = () => {
     display: block;
     width: 100%;
     left: 0;
-    top: 850px;
+    top: 1050px;
   }
 
   .directions-section {
@@ -497,6 +497,8 @@ const handleAuthRedirect = () => {
   h3 {
     font-size: 32px;
   }
-
+.auth-button {
+  width: 100%;
+}
 }
 </style>
