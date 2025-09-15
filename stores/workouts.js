@@ -9,10 +9,21 @@ export const useWorkoutsStore = defineStore('workouts', {
     workoutProgress: {},
     workoutsCompleted: {},
     isLoading: false,
-    error: null
+    error: null,
+    isInitialized: false
   }),
 
   actions: {
+    async initialize() {
+      try {
+        // Здесь можно добавить начальную инициализацию данных
+        this.isInitialized = true
+      } catch (error) {
+        this.isInitialized = false
+        this.error = this.handleError(error)
+      }
+    },
+
     async fetchWorkout(workoutId) {
         
         try {
@@ -115,15 +126,15 @@ export const useWorkoutsStore = defineStore('workouts', {
 
     async saveWorkoutProgress(courseId, workoutId, progressData) {
       try {
-        const userStore = useUserStore()
+        const userStore = useUserStore();
         
         console.log('[SAVE] Отправка данных:', { 
           courseId, 
           workoutId, 
           progressData 
-        })
-    
-        // 1. Отправка запроса с валидацией Content-Type
+        });
+        
+        // 1. Отправка запроса
         const updatedProgress = await $fetch(
           `https://wedev-api.sky.pro/api/fitness/courses/${courseId}/workouts/${workoutId}`,
           {
@@ -131,67 +142,78 @@ export const useWorkoutsStore = defineStore('workouts', {
             body: { progressData },
             headers: {
               Authorization: `Bearer ${userStore.token}`,
-              'Content-Type': '' // Исправленный Content-Type
+              'Content-Type': ''
             }
           }
-        )
-    
-        console.log('[SAVE] Ответ сервера:', updatedProgress)
-    
-        const workoutCompleted = progressData.every(v => v >= 100);
-
- this.$patch((state) => {
- // Обновляем конкретную тренировку
- state.workoutProgress[workoutId] = {
- ...(state.workoutProgress[workoutId] || {}),
- progressData,
- workoutCompleted,
- updatedAt: new Date().toISOString()
- };
-
- // Обновляем общий прогресс курса
- if (state.courseProgress[courseId]) {
- const index = state.courseProgress[courseId].workoutsProgress
- .findIndex(w => w.workoutId === workoutId);
-
- if (index !== -1) {
- state.courseProgress[courseId].workoutsProgress[index] = {
- ...state.courseProgress[courseId].workoutsProgress[index],
- workoutCompleted
- };
- } else {
- state.courseProgress[courseId].workoutsProgress.push({
- workoutId,
- workoutCompleted
- });
- }
-
- // Пересчитываем счетчик
- state.courseProgress[courseId].completedCount = 
- state.courseProgress[courseId].workoutsProgress
- .filter(w => w.workoutCompleted).length;
- }
- });
-
- // Принудительно триггерим обновление
- this.courseProgress = {...this.courseProgress};
-      } catch (error) {
-        console.error('[SAVE] Ошибка:', {
-          status: error.response?.status,
-          data: error.response?.data,
-          message: error.message
-        })
+        );
         
-        this.error = this.handleError(error)
-        throw error // Проброс ошибки для обработки в UI
+        console.log('[SAVE] Ответ сервера:', updatedProgress);
+    
+    // Исправляем логику определения workoutCompleted
+    const workoutCompleted = progressData.every(v => v >= 100);
+    
+    this.$patch((state) => {
+      // Обновляем конкретную тренировку
+      state.workoutProgress[workoutId] = {
+        ...(state.workoutProgress[workoutId] || {}),
+        progressData,
+        workoutCompleted,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Обновляем общий прогресс курса
+      if (state.courseProgress[courseId]) {
+        const workoutsProgress = state.courseProgress[courseId].workoutsProgress;
+        
+        // Находим тренировку в массиве
+        const workoutIndex = workoutsProgress.findIndex(wp => wp.workoutId === workoutId);
+        
+        if (workoutIndex !== -1) {
+          // Обновляем существующую тренировку
+          workoutsProgress[workoutIndex] = {
+            ...workoutsProgress[workoutIndex],
+            progressData,
+            workoutCompleted
+          };
+        } else {
+          // Добавляем новую тренировку
+          workoutsProgress.push({
+            workoutId,
+            progressData,
+            workoutCompleted
+          });
+        }
+
+        // Пересчитываем completedCount
+        state.courseProgress[courseId].completedCount = 
+          workoutsProgress.filter(wp => wp.workoutCompleted).length;
       }
-    },
+    });
+
+    // Принудительно обновляем состояние
+    this.courseProgress = { ...this.courseProgress };
+  } catch (error) {
+    console.error('[SAVE] Ошибка:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+    
+    this.error = this.handleError(error);
+    throw error;
+  }
+}
+    
+    ,
     
 
     async resetWorkoutProgress(courseId, workoutId) {
       try {
         const userStore = useUserStore()
-        
+        this.$patch(state => {
+          delete state.courseProgress[courseId];
+          delete state.workoutProgress;
+        });
         await $fetch(
           `https://wedev-api.sky.pro/api/fitness/courses/${courseId}/workouts/${workoutId}/reset`,
           {
@@ -244,5 +266,6 @@ export const useWorkoutsStore = defineStore('workouts', {
       // Добавляем проверку существования workoutId
       return state.workoutsCompleted[workoutId] ?? false;
     },
+    isStoreInitialized: (state) => state.isInitialized
   }
 })

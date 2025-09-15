@@ -42,6 +42,7 @@
           <span class="meta-text">{{ formattedDifficulty }}</span>
         </div>
         <!-- Место для прогресс бара -->
+
         <div v-if="props.isProfilePage" class="progress-container">
           <span class="progress-text">
             <template v-if="isProgressLoading">
@@ -88,6 +89,8 @@ const workoutsStore = useWorkoutsStore();
 const showWorkoutModal = ref(false);
 const sortedWorkouts = ref();
 const isProgressLoading = ref(false);
+const isStoreReady = ref(false)
+const isDataLoaded = ref(false)
 
 const props = defineProps({
   course: {
@@ -248,78 +251,111 @@ const closeWorkoutModal = () => {
 
 const courseId = computed(() => props.course._id);
 
-  
-
-// Функция обновления прогресса
-const updateProgress = () => {
-  const storeData = workoutsStore.courseProgress[courseId.value];
-  if (!storeData) {
-    progressData.value = { completed: 0, total: 0, percentage: 0 };
-    return;
-  }
-
-  const validCompleted = storeData.workoutsProgress
-    .filter(wp => wp.workoutCompleted).length;
-
-  progressData.value = {
-    completed: validCompleted,
-    total: storeData.totalWorkouts,
-    percentage: storeData.totalWorkouts > 0 
-      ? Math.min(100, Math.round((validCompleted / storeData.totalWorkouts) * 100))
-      : 0
-  };
-};
-
-
+// Ждем инициализации хранилища
 watch(
-  () => {
-    return {
-      progress: workoutsStore.courseProgress[courseId.value],
-      workouts: props.course.workouts,
-    };
-  },
+  () => workoutsStore.isInitialized,
   async (newValue) => {
-    try {
-      if (!newValue.progress || !newValue.workouts) return;
-     updateProgress();
-    } catch (error) {
-      console.error("Ошибка в watcher:", error);
+    if (newValue) {
+      isStoreReady.value = true
+      await handleInitialization()
     }
   },
-  {
-    deep: true,
-    flush: "post",
-  }
-);
+  { immediate: true }
+)
 
-// Инициализация при монтировании
-onMounted(async () => {
-  if (props.isProfilePage && courseId.value) {
+async function handleInitialization() {
+  if (props.isProfilePage && courseId.value && isStoreReady.value) {
     try {
-      
-      
-      if (!workoutsStore.courseProgress[courseId.value]?.workoutsProgress) {
-        await workoutsStore.fetchCourseProgress(courseId.value);
+      isProgressLoading.value = true
+
+      // Сначала проверяем наличие прогресса
+      if (!workoutsStore.courseProgress[courseId.value]) {
+        console.log('Начинаем загрузку прогресса')
+        await workoutsStore.fetchCourseProgress(courseId.value)
       }
-      
-      // Двойная проверка через nextTick
-      await nextTick();
-      updateProgress();
-      
+
+      // Затем загружаем тренировки курса
+      await coursesStore.fetchCourseWorkouts(courseId.value)
+
+      await nextTick()
+
+      // Проверяем успешность загрузки
+      if (!workoutsStore.courseProgress[courseId.value]) {
+        console.warn('Данные прогресса не загрузились')
+        isProgressLoading.value = false
+        return
+      }
+
+      // Обновляем прогресс
+      await updateProgress()
+      isProgressLoading.value = false
+      isDataLoaded.value = true
+
+      // Дополнительная проверка через таймаут
+      setTimeout(() => {
+        if (!progressData.value.percentage) {
+          console.warn('Прогресс не обновился автоматически')
+          updateProgress()
+        }
+      }, 500)
     } catch (error) {
-      console.error('Ошибка инициализации:', error);
+      console.error('Ошибка инициализации:', error)
+      isProgressLoading.value = false
     }
   }
-});
+}
+
+// В секции onMounted оставляем только инициализацию хранилища
+onMounted(async () => {
+  try {
+    // Инициализируем хранилище
+    await workoutsStore.initialize()
+  } catch (error) {
+    console.error('Ошибка инициализации хранилища:', error)
+  }
+})
+ 
+// Функция обновления прогресса
+const updateProgress = async () => {
+  try {
+    const storeData = workoutsStore.courseProgress[courseId.value];
+    
+    console.log('Данные прогресса:', storeData);
+    
+    if (!storeData || !storeData.workoutsProgress) {
+      console.warn('Данные прогресса отсутствуют');
+      progressData.value = { completed: 0, total: 0, percentage: 0 };
+      return;
+    }
+
+    // Логируем каждую тренировку
+    storeData.workoutsProgress.forEach((wp, index) => {
+      console.log(`Тренировка ${index + 1}:`, wp);
+      console.log('workoutCompleted:', wp.workoutCompleted);
+      console.log('progressData:', wp.progressData);
+    });
+
+    // Исправляем логику подсчета completed
+    const validCompleted = storeData.workoutsProgress.filter(wp => {
+      return wp.workoutCompleted || 
+        (wp.progressData && wp.progressData.every(v => v > 0)); // Проверяем, что все значения больше 0
+    }).length;
+
+    progressData.value = {
+      completed: validCompleted,
+      total: storeData.totalWorkouts,
+      percentage: storeData.totalWorkouts > 0 
+        ? Math.min(100, Math.round((validCompleted / storeData.totalWorkouts) * 100))
+        : 0
+    };
+ 
+  console.log('Обновлённый прогресс:', progressData.value);
+  } catch (error) {
+  console.error('Ошибка обновления прогресса:', error);
+  }
+ }
 
 
-watch(
-  () => workoutsStore.courseProgress[courseId.value],
-  () => {
-    updateProgress();
-  },
-  { immediate: true, deep: true }
-);
 </script>
 
 <style scoped>
