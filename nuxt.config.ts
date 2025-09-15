@@ -1,8 +1,9 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-css: ["/assets/css/main.css"],
+  compatibilityDate: '2025-09-12',
+  css: ['~/assets/css/main.css'],
+
   modules: [
     '@nuxt/eslint',
     '@nuxt/fonts',
@@ -10,9 +11,15 @@ css: ["/assets/css/main.css"],
     '@nuxt/image',
     '@nuxt/test-utils',
     '@nuxtjs/tailwindcss',
-    '@pinia/nuxt',
+    '@pinia/nuxt'
   ],
 
+  app: {
+    baseURL: '/sky-fitness-pro/'
+  },
+  
+  ssr: true,
+  
   runtimeConfig: {
     public: {
       apiBase: process.env.API_URL || 'http://localhost:3000'
@@ -21,8 +28,5 @@ css: ["/assets/css/main.css"],
 
   imports: {
     dirs: ['stores']
-  },
-
-
-
+  }
 })

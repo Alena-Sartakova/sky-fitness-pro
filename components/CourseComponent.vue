@@ -269,7 +269,6 @@ const handleAuthRedirect = () => {
   flex: 1 1 calc(33.33% - 1rem);
   min-width: 150px;
   width: calc(33.33% - 1rem);
-  height: 141px;
   font-size: 24px;
 
   .fit-text {
@@ -452,7 +451,7 @@ const handleAuthRedirect = () => {
     display: block;
     width: 100%;
     left: 0;
-    top: 850px;
+    top: 1050px;
   }
 
   .directions-section {
@@ -497,6 +496,8 @@ const handleAuthRedirect = () => {
   h3 {
     font-size: 32px;
   }
-
+.auth-button {
+  width: 100%;
+}
 }
 </style>
