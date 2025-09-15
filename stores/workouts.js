@@ -202,11 +202,8 @@ export const useWorkoutsStore = defineStore('workouts', {
     this.error = this.handleError(error);
     throw error;
   }
-}
-    
-    ,
-    
-
+},
+  
     async resetWorkoutProgress(courseId, workoutId) {
       try {
         const userStore = useUserStore()
@@ -266,6 +263,6 @@ export const useWorkoutsStore = defineStore('workouts', {
       // Добавляем проверку существования workoutId
       return state.workoutsCompleted[workoutId] ?? false;
     },
-    isStoreInitialized: (state) => state.isInitialized
+    isStoreInitialized: (state) => state.isInitialized,
   }
 })

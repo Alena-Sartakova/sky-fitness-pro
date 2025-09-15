@@ -6,7 +6,7 @@
 
       <div class="workout-list">
         <div
-          v-for="(workout, index) in workouts"
+        v-for="(workout, index) in workouts"
           :key="workout._id"
           class="workout-item"
           :class="{ 'disabled-item': !isWorkoutAvailable(index) }"
@@ -33,7 +33,11 @@
         </div>
       </div>
 
-      <button class="start-btn" @click="startTraining">
+      <button
+        class="start-btn"
+        
+        @click="startTraining"
+      >
         Начать тренировку
       </button>
     </div>
@@ -65,35 +69,26 @@ const isOpen = ref(true);
 const selectedWorkout = ref(null);
 const workouts = ref([]);
 const course = ref(null);
-const { courseProgress } = storeToRefs(useWorkoutsStore());
 
 // Добавляем вычисляемое свойство для проверки завершения тренировки
-const isWorkoutCompleted = computed(() => (workoutId) => {
-  return courseProgress.value[props.courseId]?.workoutsProgress?.some(wp => 
-    wp.workoutId === workoutId && wp.workoutCompleted
-  ) || false;
+const isWorkoutCompleted = computed(() => {
+  return (workoutId) => {
+    if (!workoutId) return false;
+    return workoutsStore.getWorkoutCompletedStatus(workoutId);
+  };
 });
 
-watch(
-  () => courseProgress.value[props.courseId]?.workoutsProgress,
-  (newProgress) => {
-    if (!newProgress) return;
-    
-    // 3. Принудительное обновление через новый массив
-    workouts.value = workouts.value.map(w => ({
-      ...w,
-      progress: newProgress.find(p => p.workoutId === w._id) || {}
-    }));
-  },
-  { deep: true }
-);
-
-const isWorkoutAvailable = (workoutIndex) => {
+const isWorkoutAvailable = computed(() => {
+  return (workoutIndex) => {
   if (workoutIndex === 0) return true;
   
   const previousWorkout = workouts.value[workoutIndex - 1];
-  return isWorkoutCompleted.value(previousWorkout?._id);
-};
+  if (!previousWorkout) return false;
+  
+  return workoutsStore.getWorkoutCompletedStatus(previousWorkout._id);
+  };
+ });
+ 
 
 // Функция для извлечения номера из названия тренировки
 const extractWorkoutNumber = (name) => {
@@ -123,60 +118,33 @@ onMounted(async () => {
     if (props.sortedWorkouts) {
       workouts.value = props.sortedWorkouts;
     } else {
-      const rawWorkouts = await coursesStore.fetchCourseWorkouts(
-        props.courseId
-      );
+      const rawWorkouts = await coursesStore.fetchCourseWorkouts(props.courseId);
       workouts.value = sortWorkouts(rawWorkouts);
     }
 
-    // Проверяем наличие прогресса перед загрузкой
-    const existingProgress = workoutsStore.courseProgress[props.courseId];
-    
-    if (!existingProgress) {
-      try {
-        // Загружаем прогресс только если его нет
-        await workoutsStore.fetchCourseProgress(props.courseId);
-      } catch (progressError) {
-        if (progressError.response && progressError.response.status === 404) {
-          console.log("Прогресс курса не найден, продолжаем работу");
-        } else {
-          throw progressError;
-        }
+    // Получаем прогресс курса (с обработкой отсутствия данных)
+    try {
+      await workoutsStore.fetchCourseProgress(props.courseId);
+    } catch (progressError) {
+      if (progressError.response && progressError.response.status === 404) {
+        console.log('Прогресс курса не найден, продолжаем работу');
+      } else {
+        throw progressError;
       }
     }
 
-    // Добавляем watcher для отслеживания изменений прогресса
-    watch(
-      () => workoutsStore.courseProgress[props.courseId],
-      async (newProgress) => {
-        if (!newProgress) return;
-
-        // Обновляем список тренировок с учетом прогресса
-        workouts.value = workouts.value.map(workout => {
-          const progress = newProgress.workoutsProgress.find(
-            wp => wp.workoutId === workout._id
-          );
-          return {
-            ...workout,
-            progress: progress || {}
-          };
-        });
-      },
-      { deep: true }
-    );
-
+    // Выводим информацию о курсе в консоль
     console.log("📋 Открыт курс:", {
       id: course.value._id,
       name: course.value.name,
       duration: course.value.durationInDays,
       difficulty: course.value.difficulty,
     });
+
   } catch (error) {
     console.error("Ошибка загрузки тренировок:", error);
   }
 });
-
-
 const getWorkoutName = (fullName) => {
   return fullName.split("/")[0].trim();
 };
@@ -210,10 +178,7 @@ const closeModal = () => {
   isOpen.value = false;
   emit("close");
 };
-
-
 </script>
-
 
 <style lang="scss" scoped>
 .modal {
@@ -282,27 +247,27 @@ const closeModal = () => {
   border-bottom: 1px solid #ddd;
   cursor: pointer;
   transition: background-color 0.3s;
-
+  
   &.disabled-item {
     opacity: 0.5;
     pointer-events: none;
     cursor: not-allowed;
-
+    
     .progress-indicator {
       .circle-icon {
         color: #aaa;
       }
     }
-
+    
     &:hover {
       background-color: transparent;
     }
   }
-
+  
   &:hover:not(.disabled-item) {
     background-color: #f0f0f0;
   }
-
+  
   &:last-child {
     border-bottom: none;
   }
@@ -320,9 +285,7 @@ const closeModal = () => {
   &:hover:not(:disabled) {
     background-color: #000000;
     color: #ffffff;
-    transition:
-      background-color 0.3s ease,
-      color 0.3s ease;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
